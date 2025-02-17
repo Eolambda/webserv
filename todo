@@ -1,11 +1,14 @@
-todo: 
-  - write back to clients
-    - check proper closing of connections if needed
-    - check if client needs to be removed or not
-    - what happens when a client closes the connexion by itself : find a way to detect it
-  - handle methods (get, delete, post)
-  - cgi 
-    - for get 
-    - post
-  - cookies and edgecases
-  - extensive testing of features
+  ---
+
+  todo sujet correct et vrac :
+
+- faire marcher envoi photos
+- faire marcher connexions permanentes
+- bien finir get / delete (sans cgi)
+- ajouter post bien clean
+- installer static website et faire marcher
+- ajouter cgi
+- ajouter cookies
+
+- same port multiple times should not work
+- tester <script> balise dans html

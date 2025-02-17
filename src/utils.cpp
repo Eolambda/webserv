@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:20:32 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/13 16:34:03 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/17 17:38:11 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -165,6 +165,7 @@ std::string extractAttributesFromURI(const std::string uri)
 std::string generateDirectorylisting(const std::string full_path)
 {
 	std::stringstream directory_listing;
+	std::string relative_path = full_path.substr(full_path.find_last_of('/') + 1);
 
 	directory_listing << "<html><head>";
 	directory_listing << "<title>Directory listing</title>";
@@ -174,7 +175,7 @@ std::string generateDirectorylisting(const std::string full_path)
 	directory_listing << "table {width: 100%; border-collapse: collapse;}";
 	directory_listing << "</style>";
 	directory_listing << "</head><body>";
-	directory_listing << "<h1>Directory listing : " << full_path << "</h1>";
+	directory_listing << "<h1>Directory listing : </h1> <h3>" << full_path << "</h3>";
 	directory_listing << "<table>";
 
 	DIR *dir;
@@ -227,4 +228,28 @@ std::string &ltrim(std::string &s)
 std::string trim_spaces(std::string &s)
 {
 	return ltrim(rtrim(s));
+}
+
+void close_all_sockets(std::vector<Server> &servers)
+{
+	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it)
+	{
+		//remove all clients
+		for (std::vector<Client>::iterator it2 = it->clients.begin(); it2 != it->clients.end(); ++it2)
+		{
+			if (it2->getFd() > 0)
+			{
+				if (close (it2->getFd()) < 0)
+					throw std::runtime_error("Error: Could not close socket");
+				std::cout << BLUE << "Client " << it2->getFd() << " : disconnected" << RESET << std::endl;
+			}
+		}
+		
+		if (it->getSocket() > 0)
+		{
+			if (close(it->getSocket()) < 0)
+				throw std::runtime_error("Error: Could not close socket");
+			std::cout << BLUE << "Server " << it->getServerName() << " : shutdown" << RESET << std::endl;
+		}
+	}
 }

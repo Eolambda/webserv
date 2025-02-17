@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:16:04 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/14 14:25:58 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/17 17:26:49 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,37 @@ std::map<int, int> fd_to_sockfd;
 fd_set current_fds, write_fds, read_fds;
 
 volatile sig_atomic_t loop = 1;
+
+//rebuild client lists, close all disconnected clients sockets and recalculates max_fd
+void remove_clients(std::vector<Server> &servers)
+{
+	max_fd = 0;
+
+	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it)
+	{
+		if (it->getSocket() >= max_fd)
+			max_fd = it->getSocket();
+			
+		for (std::vector<Client>::iterator it2 = it->clients.begin(); it2 != it->clients.end();)
+		{
+			if (it2->close_connection)
+			{
+				FD_CLR(it2->getFd(), &current_fds);
+				if (close(it2->getFd()) < 0)
+					throw std::runtime_error("Error: Could not close socket");
+				std::cout << GREEN << "Client " << it2->getFd() << " : disconnected" << RESET << std::endl;				
+				fd_to_sockfd.erase(it2->getFd());
+				it2 = it->clients.erase(it2);
+			}
+			else
+			{
+				if (it2->getFd() >= max_fd)
+					max_fd = it2->getFd();
+				++it2;
+			}
+		}
+	}
+}
 
 //loop through al servers to check if they have a client
 //for each client, read or write message depending of the state of the request
@@ -32,16 +63,15 @@ void handle_clients(std::vector<Server> &servers)
 			client = &(*it2);
 
 			if (FD_ISSET(client->getFd(), &read_fds))
-					client->readRequest();
+				(*it).readRequest(*client);
 			else if (FD_ISSET(client->getFd(), &write_fds) && client->getRequest()->isComplete())
-				client->sendResponse();
+				(*it).sendResponse(*client);
 		}
 	}
-	
 }
 
 void check_new_clients(std::vector<Server> &servers)
-{
+{	
 	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it)
 	{
 		//check max number of connexions here
@@ -79,7 +109,7 @@ void loop_handle(std::vector<Server> &servers)
 	int ret;
 	
 	read_fds = write_fds = current_fds;
-	if ((ret = select(max_fd + 1, &read_fds, &write_fds, NULL, 0) < 0) && loop == 1)
+	if ((ret = select(max_fd + 1, &read_fds, &write_fds, NULL, NULL) < 0) && loop == 1)
 	{
 		throw std::runtime_error("Error: Could not select");
 		return ;
@@ -89,6 +119,7 @@ void loop_handle(std::vector<Server> &servers)
 
 	check_new_clients(servers);	
 	handle_clients(servers);
+	remove_clients(servers);
 }
 
 int main(int argc, char **argv)
@@ -126,11 +157,13 @@ int main(int argc, char **argv)
 
 			it->initSocket();
 		}
-		signal(SIGINT, siginthandle);
+		
+		signal(SIGINT, siginthandle);	
 		while (loop)
-		{
 			loop_handle(servers);
-		}
+		
+		close_all_sockets(servers);
+		std::cout << BLUE << "All sockets closed, exiting..." << RESET << std::endl;
 	}
 	catch (std::exception &e)
 	{

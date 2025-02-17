@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:24:48 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/09 17:44:27 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/17 12:15:36 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ public:
 	Server(const Server &server);
 	~Server();
 	Server &operator=(const Server &copy);
+	bool 	operator==(const Server &copy) const;
 	static std::vector<Server> parseConfigFile(const std::string &filename);
 
 	void addLocation(void);
@@ -53,6 +54,11 @@ public:
 	int getSocket(void) const;
 
 	void initSocket(void);
+
+
+	void readRequest(Client &client);
+	void processRequest(Client &client);
+	void sendResponse(Client &client);
 	
 	//public attributes
 	std::vector<Client> clients;

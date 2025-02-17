@@ -3,6 +3,7 @@
 Response::Response()
 {
 	is_complete = false;
+	is_being_written = false;
 }
 
 Response::Response(const Response &response)
@@ -12,6 +13,14 @@ Response::Response(const Response &response)
 	_headers = response._headers;
 	_body = response._body;
 	is_complete = response.is_complete;
+	is_being_written = response.is_being_written;
+	_full_path = response._full_path;
+	_uri_attributes = response._uri_attributes;
+	_redirection = response._redirection;
+	_content_type = response._content_type;
+	_http_version = response._http_version;
+	_server = response._server;
+	_is_directory = response._is_directory;
 }
 
 Response::~Response()
@@ -25,6 +34,14 @@ Response &Response::operator=(const Response &copy)
 	_headers = copy._headers;
 	_body = copy._body;
 	is_complete = copy.is_complete;
+	is_being_written = copy.is_being_written;
+	_full_path = copy._full_path;
+	_uri_attributes = copy._uri_attributes;
+	_redirection = copy._redirection;
+	_content_type = copy._content_type;
+	_http_version = copy._http_version;
+	_server = copy._server;
+	_is_directory = copy._is_directory;
 	return *this;
 }
 
@@ -147,6 +164,11 @@ bool Response::getIsDirectory(void) const
 	return _is_directory;
 }
 
+Server *Response::getServer(void) const
+{
+	return _server;
+}
+
 void Response::resetResponse()
 {
 	_status_code.clear();
@@ -226,21 +248,28 @@ void Response::getFileContent()
 
 void Response::prepareResponse()
 {
+
 	defineContentType();
 
 	if (_status_code.empty())
 		_status_code = "000";
 	defineStatusMessage(_status_code);
+
 	
 	//build status line : status-line = HTTP-version SP status-code SP [ reason-phrase ]
 	_buffer = "HTTP/1.1 " + _status_code + " " + _status_message + CRLF;
 
+
 	//set all necessary headers
 	defineResponseHeaders();
+
+
 	_buffer += _headers;
+
 
 	if (_status_code != "301" && _status_code != "302" && _body.empty() == false)
 		_buffer += _body;
+
 }
 
 void Response::defineContentType()
@@ -415,6 +444,7 @@ void Response::defineResponseHeaders()
 {
 	_headers += "Server: " + _server->getServerName() + CRLF;
 	_headers += "Date: " + getCurrentDate() + CRLF;
+
 	if (_status_code == "301" || _status_code == "302")
 	{
 		_headers += "Location: " + _redirection + CRLF;

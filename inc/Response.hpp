@@ -39,6 +39,7 @@ class Response
 		std::string getBody() const;
 		std::string getHTTPVersion() const;
 		bool getIsDirectory() const;
+		Server *getServer() const;
 
 		void handleGET();
 		void handlePOST();

@@ -30,6 +30,7 @@ class Request
 		const std::string &getUri(void) const;
 		const std::string &getHttpVersion(void) const;
 		std::map<std::string, std::string> &getHeaders(void);
+		std::string getHeader(const std::string &header);
 		const std::string &getBody(void) const;
 		const int &getRequestValidity(void) const;
 		const bool &isComplete(void) const;

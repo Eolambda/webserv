@@ -10,6 +10,8 @@ class Response;
 class Client
 {
 	public:
+		bool close_connection;
+
 		Client();
 		Client(int fd, struct sockaddr_in addr, Server *server);
 		Client(const Client &client);
@@ -26,11 +28,7 @@ class Client
 		Response* getResponse(void);
 		Server* getServer(void);
 
-
-
-		void readRequest();
-		void processRequest();
-		void sendResponse();
+		void resetMessages(void);
 
 	private:
 		int	_fd;

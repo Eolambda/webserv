@@ -26,5 +26,6 @@ bool isAnErrorResponse(const std::string error_number);
 std::string &rtrim(std::string &s);
 std::string &ltrim(std::string &s);
 std::string trim_spaces(std::string &s);
+void close_all_sockets(std::vector<Server> &servers);
 
 #endif

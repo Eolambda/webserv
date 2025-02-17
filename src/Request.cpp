@@ -85,6 +85,13 @@ std::map<std::string, std::string> &Request::getHeaders(void)
 	return _headers;
 }
 
+std::string Request::getHeader(const std::string &header)
+{
+	if (_headers.find(header) != _headers.end())
+		return _headers[header];
+	return "";
+}
+
 const std::string &Request::getBody(void) const
 {
 	return _body;

@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:16:01 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/09 23:58:45 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/17 16:31:19 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,15 @@
 #define GREEN "\033[32m"
 #define YELLOW "\033[33m"
 #define BLUE "\033[34m"
+#define LIGHT_BLUE "\033[94m"
+#define MAGENTA "\033[35m"
+#define CYAN "\033[36m"
+#define LIGHT_RED "\033[91m"
+#define LIGHT_GREEN "\033[92m"
+#define WHITE "\033[37m"
+#define GREY "\033[90m"
+#define BRIGHT_RED "\033[91m"
+#define BRIGHT_GREEN "\033[92m"
 #define RESET "\033[0m"
 
 #define BUFFER_SIZE 4096
