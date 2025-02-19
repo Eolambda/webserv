@@ -5,6 +5,17 @@ Request::Request()
 	_is_complete = false;
 	_is_valid = 0;
 	_parsing_state = 0;
+	_client = NULL;
+}
+
+Request::Request(Client *client)
+{
+	_is_complete = false;
+	_is_valid = 0;
+	_parsing_state = 0;
+	_client = client;
+	if (_client != NULL && _client->getServer() != NULL)
+		_max_body_size = _client->getServer()->getMaxBodySize();
 }
 
 Request::Request(const Request &request)
@@ -20,6 +31,7 @@ Request::Request(const Request &request)
 	_is_valid = request._is_valid;
 	_parsing_state = request._parsing_state;
 	_full_path = request._full_path;
+	_max_body_size = request._max_body_size;
 }
 
 Request::~Request()
@@ -39,6 +51,7 @@ Request &Request::operator=(const Request &copy)
 	_is_valid = copy._is_valid;
 	_parsing_state = copy._parsing_state;
 	_full_path = copy._full_path;
+	_max_body_size = copy._max_body_size;
 	return *this;
 }
 
@@ -102,6 +115,11 @@ const int &Request::getRequestValidity(void) const
 	return _is_valid;
 }
 
+const int &Request::getMaxBodySize(void) const
+{
+	return _max_body_size;
+}
+
 const bool &Request::isComplete(void) const
 {
 	return _is_complete;
@@ -141,6 +159,11 @@ void Request::setRequestValidity(int value, bool is_complete)
 	_is_complete = is_complete;
 }
 
+void Request::setMaxBodySize(int max_body_size)
+{
+	_max_body_size = max_body_size;
+}
+
 void Request::resetRequest(void)
 {
 	_buffer.clear();
@@ -154,6 +177,7 @@ void Request::resetRequest(void)
 	_is_valid = 0;
 	_parsing_state = 0;
 	_full_path.clear();
+	_max_body_size = 0;
 }
 
 //parse the first line of the request
@@ -223,15 +247,28 @@ bool Request::parseHeaders(std::string data)
 	return true;
 }
 
+bool Request::checkBodyContentLength(std::string data)
+{
+	//if content length is not present, error
+	if (_headers.find("Content-Length") == _headers.end())
+		return false;
+
+	size_t content_length = std::stoi(_headers["Content-Length"]);
+
+	if (content_length == 0 || content_length > static_cast<size_t>(_max_body_size))
+		return false;
+	if (_body.size() + data.size() > static_cast<size_t>(_max_body_size))
+		return false;
+
+	return true;
+}
+
 //true if body is complete, false otherwise
 bool Request::parseBody(std::string data)
 {
-
-	//if content length is not present, we consider the body complete
+	//if content length is not present, error
 	if (_headers.find("Content-Length") == _headers.end())
-	{
 		return true;
-	}
 
 	size_t content_length = std::stoi(_headers["Content-Length"]);
 
@@ -305,6 +342,11 @@ void Request::readData(std::string data)
 		//handle case were a binary CRLF is found in the body, we parse it
 		else if (_parsing_state == REQUEST_BODY && _method == "POST")
 		{
+			if (checkBodyContentLength(data.substr(0, pos + 2)) == false)
+			{
+				setRequestValidity(413, true);
+				return;
+			}
 			if (parseBody(data.substr(0, pos + 2)) == true)
 			{
 				_buffer += data.substr(0, pos + 2);
@@ -330,6 +372,11 @@ void Request::readData(std::string data)
 	//and we check that body is complete by comparing with content length
 	if (_parsing_state == REQUEST_BODY && _method == "POST")
 	{
+		if (checkBodyContentLength(data.substr(0, pos + 2)) == false)
+		{
+			setRequestValidity(413, true);
+			return;
+		}
 		if (parseBody(data) == true)
 		{
 			_buffer += data;

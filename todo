@@ -2,13 +2,13 @@
 
   todo sujet correct et vrac :
 
-- faire marcher envoi photos
-- faire marcher connexions permanentes
-- bien finir get / delete (sans cgi)
-- ajouter post bien clean
-- installer static website et faire marcher
 - ajouter cgi
+  - function to detect cgi (is_cgi)
+  - handles GET cgi
+  - function to set cgi env
+- handles post cgi
 - ajouter cookies
-
 - same port multiple times should not work
-- tester <script> balise dans html
+- A request to your server should never hang forever.
+- careful aux stoi
+- no leaks

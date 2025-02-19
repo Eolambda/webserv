@@ -4,6 +4,11 @@ Response::Response()
 {
 	is_complete = false;
 	is_being_written = false;
+	_server = NULL;
+	_request = NULL;
+	_is_directory = false;
+	_content_length = 0;
+	_buffer = "";
 }
 
 Response::Response(const Response &response)
@@ -21,6 +26,11 @@ Response::Response(const Response &response)
 	_http_version = response._http_version;
 	_server = response._server;
 	_is_directory = response._is_directory;
+	_to_upload = response._to_upload;
+	_buffer = response._buffer;
+	_content_length = response._content_length;
+	_request = response._request;
+	_server = response._server;
 }
 
 Response::~Response()
@@ -42,6 +52,11 @@ Response &Response::operator=(const Response &copy)
 	_http_version = copy._http_version;
 	_server = copy._server;
 	_is_directory = copy._is_directory;
+	_to_upload = copy._to_upload;
+	_buffer = copy._buffer;
+	_content_length = copy._content_length;
+	_request = copy._request;
+	_server = copy._server;
 	return *this;
 }
 
@@ -94,6 +109,23 @@ void Response::setBuffer(const std::string &buffer)
 {
 	_buffer = buffer;
 }
+
+void Response::setToUpload(const std::string &to_upload)
+{
+	_to_upload = to_upload;
+}
+
+void Response::setContentLength(int content_length)
+{
+	_content_length = content_length;
+}
+
+void Response::setRequest(Request *request)
+{
+	_request = request;
+}
+
+
 
 std::string Response::getHeaders(void) const
 {
@@ -169,6 +201,21 @@ Server *Response::getServer(void) const
 	return _server;
 }
 
+std::string Response::getToUpload(void) const
+{
+	return _to_upload;
+}
+
+int Response::getContentLength(void) const
+{
+	return _content_length;
+}
+
+Request *Response::getRequest(void) const
+{
+	return _request;
+}
+
 void Response::resetResponse()
 {
 	_status_code.clear();
@@ -182,12 +229,17 @@ void Response::resetResponse()
 	_http_version.clear();
 	is_complete = false;
 	is_being_written = false;
+	_server = NULL;
+	_request = NULL;
+	_content_length = 0;
+	_is_directory = false;
+	_to_upload.clear();
+	_buffer.clear();
 }
 
 
 
-//specific handlers for methods
-//assume that the request is valid and has been correctly parsed
+
 void Response::handleGET()
 {
 	if (_is_directory == true)
@@ -196,18 +248,29 @@ void Response::handleGET()
 		_status_code = "200";
 	}
 	else
-		getFileContent();
+	{
+		std::ifstream file(_full_path.c_str(), std::ios::binary);
+		if (file.is_open() == false)
+			_status_code = "500";
+		else
+			_status_code = "200";
+
+		//we only present the page if the status code is not an error
+		if (!isAnErrorResponse(_status_code))
+		{
+			if (_is_directory == false)
+			{
+				std::ostringstream oss;
+				oss << file.rdbuf();
+				_body = oss.str();
+				file.close();
+			}
+		}
+	}
 }
 
 void Response::handleDELETE()
 {
-	//debug
-	std::cout << "DELETE : deleting " << _full_path << std::endl;
-	return ;
-
-	//check for authorization header (403 otherwise)
-	//remove the file
-	//500 if error, 204 if success
 	if (remove(_full_path.c_str()) != 0)
 		_status_code = "500";
 	else
@@ -216,60 +279,234 @@ void Response::handleDELETE()
 
 void Response::handlePOST()
 {
-	//handle the post request
+	std::string postBody;
+	std::map<std::string, std::string> headers = _request->getHeaders();
+	size_t content_length = static_cast<size_t>(_content_length);
+
+	//check if header content-length is present
+	if (content_length == 0)
+	{
+		_status_code = "411";
+		return ;
+	}
+	//and if it is conform to the body size
+	else if (content_length != _request->getBody().size())
+	{
+		_status_code = "400";
+		return ;
+	}
+	else
+		postBody = _request->getBody();
+
+
+	std::string content_type = headers["Content-Type"];
+	if (content_type.empty())
+	{
+		_status_code = "400";
+		return ;
+	}
+
+	//check Content-Type
+	//if multipart/form-data, parse the body using the boundary webform
+	//if application/x-www-form-urlencoded, parse the body using the & and =
+	//for anything else, we don't handle it
+	if (content_type.find("multipart/form-data") != std::string::npos)
+		HandlePOST_multiform(postBody, content_type);
+	else if (content_type.find("application/x-www-form-urlencoded") != std::string::npos)
+	{
+		std::map<std::string, std::string> params = parsePOSTBodyEncoded(postBody);
+		if (params.empty())
+		{
+			_status_code = "400";
+			return ;
+		}
+		else 
+		//data is parsed, we can use it
+			_status_code = "200";
+	}
+	//other cases, we don't handle other content types
+	else
+	{
+		_status_code = "400";
+		return ;
+	}
 }
 
-//try to open file and read its content
-//if error page, generate error page instead
-void Response::getFileContent()
+//data is cut with boundary defined in the content-type header
+//each part of the data is separated by the boundary, and represents a file
+void Response::HandlePOST_multiform(std::string body, std::string content_type)
 {
-	std::ifstream file(_full_path.c_str(), std::ios::binary);
-	if (file.is_open() == false)
-		_status_code = "500";
-	else
-		_status_code = "200";
+	std::map<std::string, std::string> files; //map to store the files address / content
 
-	if (!isAnErrorResponse(_status_code))
+	//check if boundary is present
+	std::string boundary = content_type.substr(content_type.find("boundary=") + 9);
+	if (boundary.empty())
 	{
-		//see if we read file later in another function, to support cgi 
-		if (_is_directory == false)
+		_status_code = "400";
+		return ;
+	}
+
+	//parse the body using the boundary
+	std::vector<std::string> parts = parseMultipartFormData(body, boundary);
+
+	//if no parts are found or more than one, we return an error
+	//server only accepts one file at a time
+	if (parts.empty() || parts.size() > 1)
+	{
+		_status_code = "400";
+		return ;
+	}
+
+	// Loop through each part and extract the filename, content-type, and content
+	for (std::vector<std::string>::iterator it = parts.begin(); it != parts.end(); ++it)
+	{
+		std::string filename, fileContentType, fileContent;
+		std::istringstream stream(*it);
+		std::string line;
+		bool isFileContent = false;
+
+		while (std::getline(stream, line))
 		{
-			std::string line;
-			while (std::getline(file, line))
-				_body += line + CRLF;
-			file.close();
+			// Remove carriage return at the end of the line (if present)
+			if (!line.empty() && line[line.size() - 1] == '\r')
+				line.erase(line.size() - 1);
+
+			if (line.find("Content-Disposition:") != std::string::npos && isFileContent == false)
+			{
+				// Extract filename if present
+				size_t filenamePos = line.find("filename=\"");
+				if (filenamePos != std::string::npos)
+				{
+					filenamePos += 10; // Move past 'filename="'
+					size_t endPos = line.find("\"", filenamePos);
+					if (endPos != std::string::npos)
+						filename = line.substr(filenamePos, endPos - filenamePos);
+				}
+			}
+			else if (line.find("Content-Type:") != std::string::npos && isFileContent == false)
+			{
+				// Extract Content-Type
+				fileContentType = line.substr(line.find(":") + 2);
+			}
+			else if (line.empty())
+			{
+				// Empty line indicates start of file content
+				isFileContent = true;
+			}
+			else if (isFileContent)
+			{
+				if (line == "--")
+					break;
+				// Append actual file content
+				fileContent += line + "\n";
+			}
+		}
+
+		// Remove the trailing newline from fileContent
+		if (!fileContent.empty() && fileContent[fileContent.size() - 1] == '\n')
+			fileContent.erase(fileContent.size() - 1);
+
+		if (!filename.empty())
+		{
+			std::string absolute_path = _server->getRoot();
+			if (absolute_path.back() != '/' && _server->getUploads().front() != '/')
+				absolute_path += "/";
+			else if (absolute_path.back() == '/' && _server->getUploads().front() == '/')
+				absolute_path.pop_back();
+			absolute_path += _server->getUploads();
+			if (checkPathExists(absolute_path + filename))
+			{
+				_status_code = "409";
+				return ;
+			}
+			files[absolute_path + filename] = fileContent;
 		}
 	}
-	else
+
+	//check if uri is matching the uploads parameter of the server
+	std::string temp_uri_attributes = _uri_attributes;
+	if (temp_uri_attributes.back() != '/' && _server->getUploads().back() == '/')
+		temp_uri_attributes += "/";
+	else if (temp_uri_attributes.back() == '/' && _server->getUploads().back() != '/')
+		temp_uri_attributes.pop_back();
+
+
+	if (_uri_attributes == _server->getUploads())
 	{
-		_body = "<html><head><title>Error</title></head><body><h1>Error " + _status_code + "</h1></body></html>";
+		//loop through the map and upload the files
+		for (std::map<std::string, std::string>::iterator it = files.begin(); it != files.end(); ++it)
+		{
+			if (uploadFile(it->first, it->second) == false)
+			{
+				_status_code = "500";
+				return ;
+			}
+		}
 	}
+
+	_status_code = "201";
+	return ;
 }
+
 
 void Response::prepareResponse()
 {
-
-	defineContentType();
-
 	if (_status_code.empty())
-		_status_code = "000";
+		_status_code = "500";
+
+	if (!_body.empty() && _body.size() > _server->getMaxBodySize())
+		_status_code = "413";
+
+	if (isAnErrorResponse(_status_code))
+		defineResponseErrorPage();
+
 	defineStatusMessage(_status_code);
 
-	
 	//build status line : status-line = HTTP-version SP status-code SP [ reason-phrase ]
 	_buffer = "HTTP/1.1 " + _status_code + " " + _status_message + CRLF;
 
 
 	//set all necessary headers
+	defineContentType();
 	defineResponseHeaders();
-
-
 	_buffer += _headers;
-
 
 	if (_status_code != "301" && _status_code != "302" && _body.empty() == false)
 		_buffer += _body;
+}
 
+void Response::defineResponseErrorPage()
+{
+	//if error page is defined, fetch it
+	std::string error_page = _server->getErrorPage(std::stoi(_status_code));
+	if (error_page.empty() == false)
+	{
+		//reconstitue full path
+		if (_full_path.back() == '/' && error_page.front() == '/')
+			error_page.erase(error_page.begin());
+		else if (_full_path.back() != '/' && error_page.front() != '/')
+			error_page = "/" + error_page;
+		_full_path = _server->getRoot() + error_page;
+
+		//if error opening the file, serve default error page
+		std::ifstream file(_full_path.c_str(), std::ios::binary);
+		if (file.is_open() == false)
+		{
+			_body = "<html><head><title>Error</title></head><body><h1>Error " + _status_code + "</h1></body></html>";
+			return ;
+		}
+		//otherwise serve error page
+		else
+		{
+			std::ostringstream oss;
+			oss << file.rdbuf();
+			_body = oss.str();
+			file.close();
+		}
+	}
+	//if error page undefined, serve default error page
+	else 
+		_body = "<html><head><title>Error</title></head><body><h1>Error " + _status_code + "</h1></body></html>";
 }
 
 void Response::defineContentType()
@@ -424,6 +661,10 @@ void Response::defineStatusMessage(const std::string status_number)
 		_status_message = "Not Found";
 	else if (status_code == 405)
 		_status_message = "Method Not Allowed";
+	else if (status_code == 409)
+		_status_message = "Conflict";
+	else if (status_code == 413)
+		_status_message = "Payload Too Large";
 	else if (status_code == 500)
 		_status_message = "Internal Server Error";
 	else if (status_code == 501)

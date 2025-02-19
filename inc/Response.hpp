@@ -26,6 +26,9 @@ class Response
 		void setStatusMessage(const std::string &status_message);
 		void setHeaders(const std::string &headers);
 		void setBuffer(const std::string &buffer);
+		void setToUpload(const std::string &to_upload);
+		void setContentLength(int content_length);
+		void setRequest(Request *request);
 
 		std::string getHeaders() const;
 		std::string getHeaders(const std::string &header) const;
@@ -40,21 +43,27 @@ class Response
 		std::string getHTTPVersion() const;
 		bool getIsDirectory() const;
 		Server *getServer() const;
+		std::string getToUpload() const;
+		int getContentLength() const;
+		Request *getRequest() const;
 
 		void handleGET();
 		void handlePOST();
+		void HandlePOST_multiform(std::string body, std::string content_type);
 		void handleDELETE();
 
 		void prepareResponse();
 		void defineContentType();
 		void defineStatusMessage(const std::string status_number);
 		void defineResponseHeaders();
+		void defineResponseErrorPage();
 		void getFileContent();
 
 		void resetResponse();
 	
 	private:
 		Server 		*_server;
+		Request		*_request;
 		std::string _buffer;
 		std::string	_status_code;
 		std::string _status_message;
@@ -64,7 +73,9 @@ class Response
 		std::string _uri_attributes;
 		std::string _redirection;
 		std::string _content_type;
+		int			_content_length;
 		std::string _http_version;
+		std::string _to_upload;
 		bool _is_directory;
 };
 

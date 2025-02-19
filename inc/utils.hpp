@@ -27,5 +27,9 @@ std::string &rtrim(std::string &s);
 std::string &ltrim(std::string &s);
 std::string trim_spaces(std::string &s);
 void close_all_sockets(std::vector<Server> &servers);
+std::vector<std::string> parseMultipartFormData(const std::string& bodyOriginal, const std::string& boundary);
+std::string postBodyDecode(const std::string &src);
+std::map<std::string, std::string> parsePOSTBodyEncoded(const std::string &body);
+bool uploadFile(const std::string &filename, const std::string &content);
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:24:48 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/17 12:15:36 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/18 14:41:50 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,9 +40,11 @@ public:
 	void setRoot(const std::string &value);
 	void setDefaultFile(const std::string &value);
 	void setCgiBin(const std::string &value);
+	void setUploads(const std::string &value);
 
 	std::vector<Location> &getLocations(void);
 	std::map<int, std::string> &getErrorPages(void);
+	std::string &getErrorPage(const int error_code);
 	std::string &getHostname(void);
 	int getPort(void) const;
 	std::string &getServerName(void);
@@ -50,6 +52,7 @@ public:
 	std::string &getRoot(void);
 	std::string &getDefaultFile(void);
 	std::string &getCgiBin(void);
+	std::string &getUploads(void);
 	std::map<std::string, std::string> &getCgiExtensions(void);
 	int getSocket(void) const;
 
@@ -72,6 +75,7 @@ private:
 	std::string _root;
 	std::string _default_file;
 	std::string	_cgibin;
+	std::string _uploads;
 	std::map<std::string, std::string> _cgi_extensions;
 	std::vector<Location> _locations;
 	std::map<int, std::string> _error_pages;

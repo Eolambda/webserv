@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:26:37 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/17 17:30:47 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/19 14:29:16 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,9 @@ Server &Server::operator=(const Server &copy)
 	_cgi_extensions = copy._cgi_extensions;
 	_cgibin = copy._cgibin;
 	_sockfd = copy._sockfd;
+	_uploads = copy._uploads;
+	_addr = copy._addr;
+	_addr_len = copy._addr_len;
 	return (*this);
 }
 
@@ -218,6 +221,11 @@ void Server::setCgiBin(const std::string &value)
 	_cgibin = value;
 }
 
+void Server::setUploads(const std::string &value)
+{
+	_uploads = value;
+}
+
 std::vector<Location> &Server::getLocations(void)
 {
 	return (_locations);
@@ -226,6 +234,11 @@ std::vector<Location> &Server::getLocations(void)
 std::map<int, std::string> &Server::getErrorPages(void)
 {
 	return (_error_pages);
+}
+
+std::string &Server::getErrorPage(const int error_code)
+{
+	return (_error_pages[error_code]);
 }
 
 std::string &Server::getHostname(void)
@@ -263,6 +276,11 @@ std::string &Server::getCgiBin(void)
 	return (_cgibin);
 }
 
+std::string &Server::getUploads(void)
+{
+	return (_uploads);
+}
+
 std::map<std::string, std::string> &Server::getCgiExtensions(void)
 {
 	return (_cgi_extensions);
@@ -296,6 +314,7 @@ void Server::readRequest(Client &client)
 		std::cout << GREEN << "Request received from client " << client_fd << RESET << std::endl;
 		
 		client.getRequest()->readData(buffer);
+
 		if (client.getRequest()->isComplete())
 		{
 			
@@ -306,7 +325,7 @@ void Server::readRequest(Client &client)
 				std::cout << "Method : " << client.getRequest()->getMethod() << std::endl;
 				std::cout << "URI : " << client.getRequest()->getUri() << std::endl;
 				std::cout << "HTTP version : " << client.getRequest()->getHttpVersion() << std::endl;
-				// std::cout << "Body : " << client.getRequest()->getBody() << std::endl;
+				std::cout << "Body : " << client.getRequest()->getBody() << std::endl;
 				std::cout << "Headers : " << std::endl;
 				for (std::map<std::string, std::string>::iterator it = client.getRequest()->getHeaders().begin(); it != client.getRequest()->getHeaders().end(); ++it)
 					std::cout << it->first << ": " << it->second << std::endl;
@@ -325,6 +344,7 @@ void Server::processRequest(Client &client)
 {	
 	//set the server config in the response, so that we can access it later
 	client.getResponse()->setServer(this);
+	client.getResponse()->setRequest(client.getRequest());
 
 	//check if the request is valid
 	if (client.getRequest()->getRequestValidity() != 0)
@@ -403,12 +423,15 @@ void Server::processRequest(Client &client)
 	client.getResponse()->setFullPath(full_path);
 	client.getResponse()->setIsDirectory(isDirectory(full_path));
 
-	//check if the file exists
-	if (checkPathExists(full_path) == false)
+	//check if the file exists, in case of GET or DELETE
+	if (checkPathExists(full_path) == false && client.getRequest()->getMethod() != "POST")
 	{
 		client.getResponse()->setStatusCode("404");
 		return;
 	}
+	
+	if (client.getRequest()->getMethod() == "POST")
+		client.getResponse()->setContentLength(client.getRequest()->getBody().size());
 
 	//extract attributes from URI
 	client.getResponse()->setURIAttributes(extractAttributesFromURI(client.getRequest()->getUri()));
@@ -444,8 +467,8 @@ void Server::sendResponse(Client &client)
 			std::cout << "Status message : " << client.getResponse()->getStatusMessage() << std::endl;
 			std::cout << "Headers : " << std::endl;
 			std::cout << client.getResponse()->getHeaders() << std::endl;
-			// std::cout << "Body : " << std::endl;
-			// std::cout << client.getResponse()->getBody() << std::endl;
+			std::cout << "Body : " << std::endl;
+			std::cout << client.getResponse()->getBody() << std::endl;
 			std::cout << "Full path : " << client.getResponse()->getFullPath() << std::endl;
 			std::cout << "URI attributes : " << client.getResponse()->getURIAttributes() << std::endl;
 			std::cout << "Redirection : " << client.getResponse()->getRedirection() << std::endl;

@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:20:32 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/17 17:38:11 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/19 13:39:36 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,8 @@ void parseServerBlock(const std::string &key, const std::string &value, Server &
 		current_server.setDefaultFile(value);
 	else if (key == "cgi-bin")
 		current_server.setCgiBin(value);
+	else if (key == "uploads")
+		current_server.setUploads(value);
 	else if (key == "cgi")
 	{
 		std::string cgiext = value.substr(0, value.find_first_of(" "));
@@ -252,4 +254,111 @@ void close_all_sockets(std::vector<Server> &servers)
 			std::cout << BLUE << "Server " << it->getServerName() << " : shutdown" << RESET << std::endl;
 		}
 	}
+}
+
+std::vector<std::string> parseMultipartFormData(const std::string& body, const std::string& bound) 
+{
+	std::vector<std::string> 	parts;
+	size_t 						start = 0;
+	size_t 						end = 0;
+	std::string 				boundary = "--" + bound;
+	size_t 						boundaryLength = boundary.length();
+
+				
+	while ((start = body.find(boundary, start)) != std::string::npos) 
+	{
+		//if we find boundary + "--" we stop
+		if (body.compare(start, boundaryLength + 2, boundary + "--") == 0)
+			break;
+		
+		start += boundaryLength;
+		end = body.find(boundary, start);
+		if (end == std::string::npos) {
+			end = body.length();
+		}
+		std::string toadd = body.substr(start, end - start);
+
+		//trim the \r\n at the beginning and end of the part
+		if (toadd.find("\r\n") == 0)
+			toadd.erase(0, 2);
+		if (toadd.rfind("\r\n") == toadd.length() - 2)
+			toadd.erase(toadd.length() - 2, 2);
+		
+		parts.push_back(toadd);
+	}
+	
+	return parts;
+}
+
+// URL-decodes a string. For example, "Hello%20World%21" becomes "Hello World!".
+// Also converts '+' into space.
+std::string postBodyDecode(const std::string &src)
+{
+    std::string ret;
+    char 		ch;
+    size_t 		i;
+	
+    for (i = 0; i < src.length(); i++) {
+        if (src[i] == '%') {
+            if (i + 2 < src.length() && std::isxdigit(src[i+1]) && std::isxdigit(src[i+2])) {
+                std::istringstream iss(src.substr(i + 1, 2));
+                unsigned int hex;
+                iss >> std::hex >> hex;
+                ch = static_cast<char>(hex);
+                ret += ch;
+                i += 2;
+            } else {
+                ret += '%'; // Invalid sequence, keep the '%'
+            }
+        } else if (src[i] == '+') {
+            ret += ' ';
+        } else {
+            ret += src[i];
+        }
+    }
+    return ret;
+}
+
+// Splits a URL-encoded query string (application/x-www-form-urlencoded)
+// into key-value pairs and returns them as a std::map.
+std::map<std::string, std::string> parsePOSTBodyEncoded(const std::string &body)
+{
+    std::map<std::string, std::string> 	params;
+    std::string::size_type 				start = 0;
+	
+    while (start < body.length())
+	{
+        // Find the position of the next '&'
+        std::string::size_type end = body.find('&', start);
+        if (end == std::string::npos)
+            end = body.length();
+
+        std::string pair = body.substr(start, end - start);
+        std::string::size_type eqPos = pair.find('=');
+        if (eqPos != std::string::npos) {
+            std::string key = pair.substr(0, eqPos);
+            std::string value = pair.substr(eqPos + 1);
+            // Decode both key and value
+            key = postBodyDecode(key);
+            value = postBodyDecode(value);
+            params[key] = value;
+        } else {
+            // No '=' found, treat the whole pair as key with empty value
+            std::string key = postBodyDecode(pair);
+            params[key] = "";
+        }
+        start = end + 1;
+    }
+	
+    return params;
+}
+
+bool uploadFile(const std::string &filename, const std::string &content)
+{
+	std::ofstream file(filename.c_str(), std::ios::out | std::ios::binary);
+	if (!file.is_open())
+		return false;
+	file << content;
+	file.close();
+	return true;
 }
