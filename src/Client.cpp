@@ -97,6 +97,11 @@ Server *Client::getServer()
 	return _server;
 }
 
+int *Client::getCgiPipes()
+{
+	return _cgi_pipes;
+}
+
 void Client::resetMessages()
 {
 	delete _request;

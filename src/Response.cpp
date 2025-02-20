@@ -9,6 +9,7 @@ Response::Response()
 	_is_directory = false;
 	_content_length = 0;
 	_buffer = "";
+	_cgi_buffer = "";
 }
 
 Response::Response(const Response &response)
@@ -31,6 +32,7 @@ Response::Response(const Response &response)
 	_content_length = response._content_length;
 	_request = response._request;
 	_server = response._server;
+	_cgi_buffer = response._cgi_buffer;
 }
 
 Response::~Response()
@@ -57,6 +59,7 @@ Response &Response::operator=(const Response &copy)
 	_content_length = copy._content_length;
 	_request = copy._request;
 	_server = copy._server;
+	_cgi_buffer = copy._cgi_buffer;
 	return *this;
 }
 
@@ -123,6 +126,11 @@ void Response::setContentLength(int content_length)
 void Response::setRequest(Request *request)
 {
 	_request = request;
+}
+
+void Response::setCgiBuffer(const std::string &cgi_buffer)
+{
+	_cgi_buffer = cgi_buffer;
 }
 
 
@@ -216,6 +224,11 @@ Request *Response::getRequest(void) const
 	return _request;
 }
 
+std::string Response::getCgiBuffer(void) const
+{
+	return _cgi_buffer;
+}
+
 void Response::resetResponse()
 {
 	_status_code.clear();
@@ -235,6 +248,7 @@ void Response::resetResponse()
 	_is_directory = false;
 	_to_upload.clear();
 	_buffer.clear();
+	_cgi_buffer.clear();
 }
 
 
@@ -246,6 +260,10 @@ void Response::handleGET()
 	{
 		_body = generateDirectorylisting(_full_path);
 		_status_code = "200";
+	}
+	else if (is_cgi(*_request))
+	{
+		//if cgi, we execute the script
 	}
 	else
 	{
@@ -465,14 +483,18 @@ void Response::prepareResponse()
 	//build status line : status-line = HTTP-version SP status-code SP [ reason-phrase ]
 	_buffer = "HTTP/1.1 " + _status_code + " " + _status_message + CRLF;
 
-
-	//set all necessary headers
-	defineContentType();
-	defineResponseHeaders();
-	_buffer += _headers;
-
-	if (_status_code != "301" && _status_code != "302" && _body.empty() == false)
-		_buffer += _body;
+	if (is_cgi(*_request) && (_status_code == "200" || _status_code == "201"))
+	{
+		_buffer += _cgi_buffer;
+	}
+	else 
+	{
+		defineContentType();
+		defineResponseHeaders();
+		_buffer += _headers;
+		if (_status_code != "301" && _status_code != "302" && _body.empty() == false)
+			_buffer += _body;
+	}
 }
 
 void Response::defineResponseErrorPage()

@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:16:01 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/17 16:31:19 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/20 14:43:28 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@
 #include <Request.hpp>
 #include <Response.hpp>
 #include <utils.hpp>
+#include <cgi.hpp>
 
 #define BOLD "\033[1m"
 #define ITALIC "\033[3m"

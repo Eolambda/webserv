@@ -3,12 +3,31 @@
   todo sujet correct et vrac :
 
 - ajouter cgi
-  - function to detect cgi (is_cgi)
-  - handles GET cgi
-  - function to set cgi env
-- handles post cgi
+  - simple cgi execution script, pendant le handling des methodes
+  - puis cgi script pdt main boucle pour LIRE le resultat des cgi
+  - puis simple cgi answer wrapper dans le write reponse tout a la fin
+    - check si cgi (voir pour ajouter un flag dans reponse pour signaler que c pur cgi)
+    - ecrit premiere ligne comme dhab
+    - cree les mandatory headers
+    - si cgi, copie le reste apres
+    - check si headers sont bons
+  - ecrire simple script cgi python pour commencer
+  - functions plus poussees pour decomposer uri mieux (au cas ou ?name=stuff apres extension)
+    - what are the uri_attributes ? 
+  - ajouter timeout pour les cgi
+- mettre handle dans server instead, idem our cgi 
+  - mais dans des fichiers a part meme si rattaches a serveur
+- voir pour handle cgi get si cgi pas defini (default behavior : renvoie juste file)
+- meilleure gestion des headers (both request et response)
+- monitorer fd des cgi avec select
+- handles post cgi (avec stdin, check gpt)
 - ajouter cookies
 - same port multiple times should not work
 - A request to your server should never hang forever.
-- careful aux stoi
 - no leaks
+- retest max body size, especially si header est pas un nombre
+- fonction pour check les headers au moment du parsing de la request
+  - pourrait mieux tester max body size
+- rendre compatible chrome 
+- ajouter champ simple upload fichiers sur le site (envoie requete pour upload un fichier sur /uploads/)
+- idem voir moyen de tester DELETE

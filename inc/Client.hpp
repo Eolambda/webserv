@@ -27,6 +27,7 @@ class Client
 		Request* getRequest(void);
 		Response* getResponse(void);
 		Server* getServer(void);
+		int* getCgiPipes(void);
 
 		void resetMessages(void);
 

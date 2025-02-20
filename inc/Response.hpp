@@ -29,6 +29,7 @@ class Response
 		void setToUpload(const std::string &to_upload);
 		void setContentLength(int content_length);
 		void setRequest(Request *request);
+		void setCgiBuffer(const std::string &cgi_buffer);
 
 		std::string getHeaders() const;
 		std::string getHeaders(const std::string &header) const;
@@ -46,6 +47,7 @@ class Response
 		std::string getToUpload() const;
 		int getContentLength() const;
 		Request *getRequest() const;
+		std::string getCgiBuffer() const;
 
 		void handleGET();
 		void handlePOST();
@@ -76,6 +78,7 @@ class Response
 		int			_content_length;
 		std::string _http_version;
 		std::string _to_upload;
+		std::string _cgi_buffer;
 		bool _is_directory;
 };
 

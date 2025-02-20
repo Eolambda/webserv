@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:24:48 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/18 14:41:50 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/20 16:08:04 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,7 @@ public:
 
 
 	void readRequest(Client &client);
+	void readCGI(Client &client);
 	void processRequest(Client &client);
 	void sendResponse(Client &client);
 	

@@ -120,6 +120,11 @@ const int &Request::getMaxBodySize(void) const
 	return _max_body_size;
 }
 
+Client *Request::getClient(void) const
+{
+	return _client;
+}
+
 const bool &Request::isComplete(void) const
 {
 	return _is_complete;

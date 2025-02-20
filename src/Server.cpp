@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:26:37 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/19 14:29:16 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/20 18:18:20 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -447,6 +447,47 @@ void Server::processRequest(Client &client)
 		client.getResponse()->setStatusCode("405");
 
 	return;
+}
+
+void Server::readCGI(Client &client)
+{
+	int ret;
+	char buffer[BUFFER_SIZE + 1];
+
+	ret = read(client.getCgiPipes()[0], buffer, BUFFER_SIZE);
+	if (ret < 0)
+	{
+		client.getResponse()->setStatusCode("500");
+		close (client.getCgiPipes()[0]);
+		client.getCgiPipes()[0] = -1;
+		client.getCgiPipes()[1] = -1;
+		
+	}
+	else if (ret == 0)
+	{
+		close(client.getCgiPipes()[0]);
+		client.getCgiPipes()[0] = -1;
+		client.getCgiPipes()[1] = -1;
+		//fetch status code from cgi buffer
+		//if there is the word "Status: " in the buffer, we fetch the status code
+		std::string cgi_buffer = client.getResponse()->getCgiBuffer();
+		size_t pos = cgi_buffer.find("Status: ");
+		if (pos != std::string::npos)
+		{
+			std::string status_code = cgi_buffer.substr(pos + 8, 3);
+			if (atoi(status_code.c_str()) <= 0)
+				status_code = "200";
+			client.getResponse()->setStatusCode(status_code);
+			//empty the buffer if error
+		}
+		else
+			client.getResponse()->setStatusCode("200");
+	}
+	else
+	{
+		buffer[ret] = '\0';
+		client.getResponse()->setCgiBuffer(client.getResponse()->getCgiBuffer() + buffer);
+	}
 }
 
 void Server::sendResponse(Client &client)
