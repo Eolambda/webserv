@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:26:37 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/20 18:18:20 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/21 15:57:54 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -342,10 +342,12 @@ void Server::readRequest(Client &client)
 //handle the whole request, once it is complete, by filling response object and treating the request on the server side
 void Server::processRequest(Client &client)
 {	
+		
 	//set the server config in the response, so that we can access it later
 	client.getResponse()->setServer(this);
 	client.getResponse()->setRequest(client.getRequest());
 
+		
 	//check if the request is valid
 	if (client.getRequest()->getRequestValidity() != 0)
 	{
@@ -354,6 +356,7 @@ void Server::processRequest(Client &client)
 		return;
 	}
 
+		
 	//get full path
 	std::string root_path = this->getRoot();
 	std::string extracted = extractPathFromURI(client.getRequest()->getUri());
@@ -367,6 +370,7 @@ void Server::processRequest(Client &client)
 	std::string location_path;
 	size_t pos;
 
+		
 	for (std::vector<Location>::iterator it = this->getLocations().begin(); it != this->getLocations().end(); ++it)
 	{
 		location_path = extractPathFromURI(client.getRequest()->getUri());
@@ -380,9 +384,11 @@ void Server::processRequest(Client &client)
 		else if ((*it).getPath().back() != '/' && location_path.back() == '/')
 			location_path.pop_back();
 
+
 		//a location block exists, we handle it
 		if (location_path == (*it).getPath())
 		{
+			
 			//this is a redirection, we handle it
 			if ((*it).getRedirect().empty() == false)
 			{
@@ -390,7 +396,7 @@ void Server::processRequest(Client &client)
 					client.getResponse()->setRedirection((*it).getRedirect());
 					return;
 			}
-			
+
 			//check if the method is allowed
 			if (((*it).getAllowedMethods() & client.getRequest()->getMethodBit()) == 0)
 			{
@@ -420,6 +426,7 @@ void Server::processRequest(Client &client)
 		}
 	}
 
+		
 	client.getResponse()->setFullPath(full_path);
 	client.getResponse()->setIsDirectory(isDirectory(full_path));
 
@@ -435,10 +442,18 @@ void Server::processRequest(Client &client)
 
 	//extract attributes from URI
 	client.getResponse()->setURIAttributes(extractAttributesFromURI(client.getRequest()->getUri()));
+			
 
+	//check if the request is a CGI
+	if (is_cgi(client.getRequest(), &client))
+		client.getResponse()->setIsCgi(true);
+	else
+		client.getResponse()->setIsCgi(false);
+
+		
 	//specific method handlers
 	if (client.getRequest()->getMethod() == "GET")
-		client.getResponse()->handleGET();
+		client.getResponse()->handleGET(&client);
 	else if (client.getRequest()->getMethod() == "POST")
 		client.getResponse()->handlePOST();
 	else if (client.getRequest()->getMethod() == "DELETE")
@@ -453,6 +468,9 @@ void Server::readCGI(Client &client)
 {
 	int ret;
 	char buffer[BUFFER_SIZE + 1];
+	
+		//debug
+		std::cout << RED << "Reading CGI response" << RESET << std::endl;
 
 	ret = read(client.getCgiPipes()[0], buffer, BUFFER_SIZE);
 	if (ret < 0)
@@ -481,8 +499,7 @@ void Server::readCGI(Client &client)
 			//empty the buffer if error
 		}
 		else
-			client.getResponse()->setStatusCode("200");
-	}
+			client.getResponse()->setStatusCode("200");}
 	else
 	{
 		buffer[ret] = '\0';
@@ -516,6 +533,8 @@ void Server::sendResponse(Client &client)
 			std::cout << "Content type : " << client.getResponse()->getContentType() << std::endl;
 			std::cout << "HTTP version : " << client.getResponse()->getHTTPVersion() << std::endl;
 			std::cout << "Is directory : " << client.getResponse()->getIsDirectory() << std::endl;
+			std::cout << "Is CGI : " << client.getResponse()->getIsCgi() << std::endl;
+			std::cout << "CGI Buffer : " << client.getResponse()->getCgiBuffer() << std::endl;
 			std::cout << "--- End of response ---" << std::endl;
 			std::cout << std::endl;
 	}

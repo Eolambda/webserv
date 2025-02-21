@@ -30,6 +30,7 @@ class Response
 		void setContentLength(int content_length);
 		void setRequest(Request *request);
 		void setCgiBuffer(const std::string &cgi_buffer);
+		void setIsCgi(bool is_cgi);
 
 		std::string getHeaders() const;
 		std::string getHeaders(const std::string &header) const;
@@ -48,8 +49,9 @@ class Response
 		int getContentLength() const;
 		Request *getRequest() const;
 		std::string getCgiBuffer() const;
+		bool getIsCgi() const;
 
-		void handleGET();
+		void handleGET(Client *client);
 		void handlePOST();
 		void HandlePOST_multiform(std::string body, std::string content_type);
 		void handleDELETE();
@@ -80,6 +82,7 @@ class Response
 		std::string _to_upload;
 		std::string _cgi_buffer;
 		bool _is_directory;
+		bool _is_cgi;
 };
 
 #endif

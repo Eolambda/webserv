@@ -37,7 +37,7 @@ class Request
 		const int &getRequestValidity(void) const;
 		const int &getMaxBodySize(void) const;
 		const bool &isComplete(void) const;
-		Client *getClient(void) const;
+		Client &getClient(void);
 
 		void readData(std::string data);
 		void setRequestValidity(int value, bool is_complete);

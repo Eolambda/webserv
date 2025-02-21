@@ -33,6 +33,7 @@ Response::Response(const Response &response)
 	_request = response._request;
 	_server = response._server;
 	_cgi_buffer = response._cgi_buffer;
+	_is_cgi = response._is_cgi;
 }
 
 Response::~Response()
@@ -60,6 +61,7 @@ Response &Response::operator=(const Response &copy)
 	_request = copy._request;
 	_server = copy._server;
 	_cgi_buffer = copy._cgi_buffer;
+	_is_cgi = copy._is_cgi;
 	return *this;
 }
 
@@ -131,6 +133,11 @@ void Response::setRequest(Request *request)
 void Response::setCgiBuffer(const std::string &cgi_buffer)
 {
 	_cgi_buffer = cgi_buffer;
+}
+
+void Response::setIsCgi(bool is_cgi)
+{
+	_is_cgi = is_cgi;
 }
 
 
@@ -229,6 +236,12 @@ std::string Response::getCgiBuffer(void) const
 	return _cgi_buffer;
 }
 
+bool Response::getIsCgi(void) const
+{
+	return _is_cgi;
+}
+
+
 void Response::resetResponse()
 {
 	_status_code.clear();
@@ -249,21 +262,23 @@ void Response::resetResponse()
 	_to_upload.clear();
 	_buffer.clear();
 	_cgi_buffer.clear();
+	_is_cgi = false;
 }
 
 
 
 
-void Response::handleGET()
+void Response::handleGET(Client *client)
 {
 	if (_is_directory == true)
 	{
 		_body = generateDirectorylisting(_full_path);
 		_status_code = "200";
 	}
-	else if (is_cgi(*_request))
+	else if (_is_cgi == true)
 	{
-		//if cgi, we execute the script
+		handle_cgi(client);
+		_status_code = "200";
 	}
 	else
 	{
@@ -483,7 +498,7 @@ void Response::prepareResponse()
 	//build status line : status-line = HTTP-version SP status-code SP [ reason-phrase ]
 	_buffer = "HTTP/1.1 " + _status_code + " " + _status_message + CRLF;
 
-	if (is_cgi(*_request) && (_status_code == "200" || _status_code == "201"))
+	if (_is_cgi == true && (_status_code == "200" || _status_code == "201"))
 	{
 		_buffer += _cgi_buffer;
 	}

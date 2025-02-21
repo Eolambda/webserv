@@ -3,19 +3,23 @@
 //All the helpers cgi functions
 
 
-bool is_cgi(const Request &request)
+bool is_cgi(Request *request, Client *client)
 {
-	std::string uri = request.getUri();
+	std::string uri = request->getUri();
 	std::string path = extractPathFromURI(uri);
-	std::string extension = path.substr(path.find_last_of('.') + 1);
-	std::map<std::string, std::string> cgi_extensions = request.getClient()->getServer()->getCgiExtensions();
-	
-	if (isDirectory(request.getClient()->getResponse()->getFullPath()))
+	std::string extension = path.substr(path.find_last_of('.'));
+	std::map<std::string, std::string> cgi_extensions = client->getServer()->getCgiExtensions();
+
+
+	if (client->getResponse()->getIsDirectory() == true)
 		return false;
-	if (request.getMethod() != "POST" && request.getMethod() != "GET")
+
+	if (request->getMethod() != "POST" && request->getMethod() != "GET")
 		return false;
+
 	if (cgi_extensions.find(extension) != cgi_extensions.end())
 		return true;
+
 	return false;	
 }
 
@@ -25,13 +29,23 @@ void handle_cgi(Client *client)
 	Request *request = client->getRequest();
 	Response *response = client->getResponse();
 
+
 	if (!server || !request || !response)
 		return;
 
+
 	std::string file_path = response->getFullPath();
-	std::string extension = file_path.substr(file_path.find_last_of('.') + 1);
+	std::string extension = file_path.substr(file_path.find_last_of('.'));
+	std::string root = server->getRoot();
 	std::string program_path = server->getCgiBin();
 
+	//if root path ends with a / and program path starts with a /, we remove the / from root path
+	//if root path does not end with a / and program path does not start with one neither, we add a / to root path
+	if (root.back() == '/' && program_path.front() == '/')
+		root.pop_back();
+	else if (root.back() != '/' && program_path.front() != '/')
+		root += "/";
+	program_path = root + program_path;
 	if (program_path.back() != '/')
 		program_path += "/";
 	program_path += server->getCgiExtensions()[extension];
@@ -47,7 +61,7 @@ void handle_cgi(Client *client)
 void execute_cgi(std::vector<std::string> cmd, std::vector<std::string> env, Client *client)
 {
 	pid_t pid; 
-	
+
 	if (pipe(client->getCgiPipes()) < 0)
 	{
 		client->getResponse()->setStatusCode("500");
@@ -62,10 +76,12 @@ void execute_cgi(std::vector<std::string> cmd, std::vector<std::string> env, Cli
 		client->getCgiPipes()[1] = -1;
 		return;
 	}
+
 	if (pid == 0)
 	{
 		//close unused pipe and duplicate pipe to stdout
 		close(client->getCgiPipes()[0]);
+
 		if (dup2(client->getCgiPipes()[1], STDOUT_FILENO) < 0)
 		{
 			close(client->getCgiPipes()[1]);
@@ -106,7 +122,7 @@ std::vector<std::string> generate_cgi_env(Client *client, std::string command, s
 	std::vector<std::string> env;
 	std::string value;
 
-	env.push_back("AUTH_TYPE");
+	env.push_back("AUTH_TYPE=");
 	if (client->getRequest()->getMethod() == "POST")
 		env.push_back("CONTENT_LENGTH=" + client->getRequest()->getHeaders()["Content-Length"]);
 	else
