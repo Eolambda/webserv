@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:26:37 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/21 15:57:54 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/22 13:04:33 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -342,6 +342,7 @@ void Server::readRequest(Client &client)
 //handle the whole request, once it is complete, by filling response object and treating the request on the server side
 void Server::processRequest(Client &client)
 {	
+
 		
 	//set the server config in the response, so that we can access it later
 	client.getResponse()->setServer(this);
@@ -356,7 +357,6 @@ void Server::processRequest(Client &client)
 		return;
 	}
 
-		
 	//get full path
 	std::string root_path = this->getRoot();
 	std::string extracted = extractPathFromURI(client.getRequest()->getUri());
@@ -450,12 +450,13 @@ void Server::processRequest(Client &client)
 	else
 		client.getResponse()->setIsCgi(false);
 
+
 		
 	//specific method handlers
 	if (client.getRequest()->getMethod() == "GET")
 		client.getResponse()->handleGET(&client);
 	else if (client.getRequest()->getMethod() == "POST")
-		client.getResponse()->handlePOST();
+		client.getResponse()->handlePOST(&client);
 	else if (client.getRequest()->getMethod() == "DELETE")
 		client.getResponse()->handleDELETE();
 	else
@@ -464,13 +465,75 @@ void Server::processRequest(Client &client)
 	return;
 }
 
-void Server::readCGI(Client &client)
+//when the request is a CGI and a POST, we send the body to the child process
+void Server::sendCGI(Client &client)
+{
+	int ret;
+	double time = get_time();
+
+	if (time - client.getTimer() > CGI_TIMEOUT)
+	{
+		client.getResponse()->setStatusCode("500");
+		close(client.getCgiPipes_POST()[1]);
+		close(client.getCgiPipes()[0]);
+		client.getCgiPipes_POST()[0] = -1;
+		client.getCgiPipes_POST()[1] = -1;
+		client.getCgiPipes()[0] = -1;
+		client.getCgiPipes()[1] = -1;
+		client.getResponse()->setCgiBuffer("");
+		return;
+	}
+	
+	size_t body_size = client.getRequest()->getCGIsendBuffer().size();
+	if (body_size > 0)
+	{
+		if (body_size <= BUFFER_SIZE)
+			ret = write(client.getCgiPipes_POST()[1], client.getRequest()->getCGIsendBuffer().c_str(), body_size);
+		else
+			ret = write(client.getCgiPipes_POST()[1], client.getRequest()->getCGIsendBuffer().c_str(), BUFFER_SIZE);
+	}
+	else
+		ret = 0;
+
+	if (ret < 0)
+	{
+		client.getResponse()->setStatusCode("500");
+		close(client.getCgiPipes_POST()[1]);
+		close(client.getCgiPipes()[0]);
+		client.getCgiPipes_POST()[0] = -1;
+		client.getCgiPipes_POST()[1] = -1;
+		client.getCgiPipes()[0] = -1;
+		client.getCgiPipes()[1] = -1;
+		client.getResponse()->setCgiBuffer("");
+		return;
+	}
+	else if (ret == 0 || body_size == static_cast<size_t>(ret))
+	{
+		close(client.getCgiPipes_POST()[1]);
+		client.getCgiPipes_POST()[1] = -1;
+		client.getCgiPipes_POST()[0] = -1;
+	}
+	else
+		client.getRequest()->setCGIsendBuffer(client.getRequest()->getCGIsendBuffer().substr(ret));
+}
+
+
+//when the request is a CGI, we read the CGI output in order to build the response
+void Server::receiveCGI(Client &client)
 {
 	int ret;
 	char buffer[BUFFER_SIZE + 1];
-	
-		//debug
-		std::cout << RED << "Reading CGI response" << RESET << std::endl;
+	double time = get_time();
+
+	if (time - client.getTimer() > CGI_TIMEOUT)
+	{
+		client.getResponse()->setStatusCode("500");
+		close(client.getCgiPipes()[0]);
+		client.getCgiPipes()[0] = -1;
+		client.getCgiPipes()[1] = -1;
+		client.getResponse()->setCgiBuffer("");
+		return;
+	}
 
 	ret = read(client.getCgiPipes()[0], buffer, BUFFER_SIZE);
 	if (ret < 0)

@@ -21,6 +21,7 @@ class Client
 
 		void setFd(const int fd);
 		void setServer(Server *server);
+		void setTimer(double timeout);
 
 		int  getFd(void);
 		struct sockaddr_in getAddr(void);
@@ -28,13 +29,18 @@ class Client
 		Response* getResponse(void);
 		Server* getServer(void);
 		int* getCgiPipes(void);
+		int* getCgiPipes_POST(void);
+		double getTimer(void);
 
 		void resetMessages(void);
 
 	private:
 		int	_fd;
 		int _cgi_pipes[2];
+		int _cgi_pipes_POST[2];
 		struct sockaddr_in _addr;
+		double _timeout;
+		
 		//Check if we need pointers here or not
 		Request*	_request;
 		Response*	_response;

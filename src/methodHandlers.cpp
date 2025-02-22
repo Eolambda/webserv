@@ -8,10 +8,7 @@ void Response::handleGET(Client *client)
 		_status_code = "200";
 	}
 	else if (_is_cgi == true)
-	{
 		handle_cgi(client);
-		_status_code = "200";
-	}
 	else
 	{
 		std::ifstream file(_full_path.c_str(), std::ios::binary);
@@ -42,7 +39,7 @@ void Response::handleDELETE()
 		_status_code = "204";
 }
 
-void Response::handlePOST()
+void Response::handlePOST(Client *client)
 {
 	std::string postBody;
 	std::map<std::string, std::string> headers = _request->getHeaders();
@@ -68,6 +65,13 @@ void Response::handlePOST()
 	if (content_type.empty())
 	{
 		_status_code = "400";
+		return ;
+	}
+
+	if (_is_cgi == true)
+	{
+		client->getRequest()->setCGIsendBuffer(postBody);
+		handle_cgi(client);
 		return ;
 	}
 

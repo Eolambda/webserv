@@ -8,7 +8,10 @@ Client::Client()
 	_fd = -1;
 	_cgi_pipes[0] = -1;
 	_cgi_pipes[1] = -1;
+	_cgi_pipes_POST[0] = -1;
+	_cgi_pipes_POST[1] = -1;
 	close_connection = false;
+	_timeout = 0;
 }
 
 Client::Client(int fd, struct sockaddr_in addr, Server *server)
@@ -17,8 +20,11 @@ Client::Client(int fd, struct sockaddr_in addr, Server *server)
 	_addr = addr;
 	_cgi_pipes[0] = -1;
 	_cgi_pipes[1] = -1;
+	_cgi_pipes_POST[0] = -1;
+	_cgi_pipes_POST[1] = -1;
 	_server = server;
 	close_connection = false;
+	_timeout = 0;
 	_request = new Request(this);
 	_response = new Response();
 }
@@ -28,9 +34,12 @@ Client::Client(const Client &client)
 	_fd = client._fd;
 	_cgi_pipes[0] = client._cgi_pipes[0];
 	_cgi_pipes[1] = client._cgi_pipes[1];
+	_cgi_pipes_POST[0] = client._cgi_pipes_POST[0];
+	_cgi_pipes_POST[1] = client._cgi_pipes_POST[1];
 	_server = client._server;
 	_addr = client._addr;
 	close_connection = client.close_connection;
+	_timeout = client._timeout;
 	_request = new Request(*(client._request));
 	_response = new Response(*(client._response));
 }
@@ -51,9 +60,12 @@ Client &Client::operator=(const Client &copy)
 	_fd = copy._fd;
 	_cgi_pipes[0] = copy._cgi_pipes[0];
 	_cgi_pipes[1] = copy._cgi_pipes[1];
+	_cgi_pipes_POST[0] = copy._cgi_pipes_POST[0];
+	_cgi_pipes_POST[1] = copy._cgi_pipes_POST[1];
 	_server = copy._server;
 	_addr = copy._addr;
 	close_connection = copy.close_connection;
+	_timeout = copy._timeout;
 	return *this;
 }
 
@@ -70,6 +82,11 @@ void Client::setFd(const int fd)
 void Client::setServer(Server *server)
 {
 	_server = server;
+}
+
+void Client::setTimer(double timeout)
+{
+	_timeout = timeout;
 }
 
 struct sockaddr_in Client::getAddr()
@@ -102,11 +119,26 @@ int *Client::getCgiPipes()
 	return _cgi_pipes;
 }
 
+int *Client::getCgiPipes_POST()
+{
+	return _cgi_pipes_POST;
+}
+
+double Client::getTimer()
+{
+	return _timeout;
+}
+
 void Client::resetMessages()
 {
 	delete _request;
 	delete _response;
 
-	_request = new Request();
+	_request = new Request(this);
 	_response = new Response();
+	_timeout = 0;
+	_cgi_pipes[0] = -1;
+	_cgi_pipes[1] = -1;
+	_cgi_pipes_POST[0] = -1;
+	_cgi_pipes_POST[1] = -1;
 }

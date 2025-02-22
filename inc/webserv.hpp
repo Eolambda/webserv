@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:16:01 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/20 14:43:28 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/21 17:06:48 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <signal.h>
+#include <time.h>
 // #include <linux/limits.h>
 #include <fcntl.h>
 #include <dirent.h>
@@ -67,6 +68,7 @@
 
 #define BUFFER_SIZE 4096
 #define MAX_CONNECTIONS 1000
+#define CGI_TIMEOUT 512
 
 #define GET_BIT 0x01
 #define POST_BIT 0x02

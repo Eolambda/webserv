@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:16:04 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/21 15:54:28 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/22 12:39:29 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,8 +65,11 @@ void handle_clients(std::vector<Server> &servers)
 			if (FD_ISSET(client->getFd(), &read_fds))
 				(*it).readRequest(*client);
 			else if (client->getRequest()->isComplete() && client->getResponse()->getIsCgi() == true
-			&& client->getCgiPipes()[0] != -1)
-				(*it).readCGI(*client);
+			&& client->getCgiPipes_POST()[1] != -1 && client->getRequest()->getMethod() == "POST")
+				(*it).sendCGI(*client);
+			else if (client->getRequest()->isComplete() && client->getResponse()->getIsCgi() == true
+			&& client->getCgiPipes()[0] != -1 && client->getCgiPipes_POST()[1] == -1)
+				(*it).receiveCGI(*client);
 			else if (FD_ISSET(client->getFd(), &write_fds) && client->getRequest()->isComplete()
 			&& client->getCgiPipes()[0] == -1)
 				(*it).sendResponse(*client);

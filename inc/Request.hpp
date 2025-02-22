@@ -24,6 +24,7 @@ class Request
 		void setHeaders(const std::map<std::string, std::string> &headers);
 		void setBody(const std::string &body);
 		void setMaxBodySize(int max_body_size);
+		void setCGIsendBuffer(const std::string &buffer);
 
 		const std::string &getBuffer(void) const;
 		const std::string &getLastLine(void) const;
@@ -38,6 +39,7 @@ class Request
 		const int &getMaxBodySize(void) const;
 		const bool &isComplete(void) const;
 		Client &getClient(void);
+		const std::string &getCGIsendBuffer(void) const;
 
 		void readData(std::string data);
 		void setRequestValidity(int value, bool is_complete);
@@ -55,6 +57,7 @@ class Request
 		std::string _http_version;
 		std::map<std::string, std::string> _headers;
 		std::string _body;
+		std::string _CGI_send_buffer;
 		bool _is_complete;
 		int _is_valid;
 		int _parsing_state; //0 = first line, 1 = headers, 2 = body

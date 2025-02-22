@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:20:32 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/20 12:17:57 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/21 16:51:51 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,13 @@ std::string toBinaryString(uint8_t value) {
         result.push_back((value & (1 << i)) ? '1' : '0');
     }
     return result;
+}
+
+double get_time(void)
+{
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return (tv.tv_sec + tv.tv_usec / 1000000.0);
 }
 
 bool check_extension(const std::string &str)
@@ -135,6 +142,11 @@ std::string decodeURI(const std::string &uri)
 		{
 			decoded += static_cast<char>(std::stoi(uri.substr(i + 1, 2), 0, 16));
 			i += 3;
+		}
+		else if (uri[i] == '+')
+		{
+			decoded += ' ';
+			i++;
 		}
 		else
 		{

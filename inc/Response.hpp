@@ -52,7 +52,7 @@ class Response
 		bool getIsCgi() const;
 
 		void handleGET(Client *client);
-		void handlePOST();
+		void handlePOST(Client *client);
 		void HandlePOST_multiform(std::string body, std::string content_type);
 		void handleDELETE();
 

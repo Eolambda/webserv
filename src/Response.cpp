@@ -283,9 +283,7 @@ void Response::prepareResponse()
 	_buffer = "HTTP/1.1 " + _status_code + " " + _status_message + CRLF;
 
 	if (_is_cgi == true && (_status_code == "200" || _status_code == "201"))
-	{
 		_buffer += _cgi_buffer;
-	}
 	else 
 	{
 		defineContentType();

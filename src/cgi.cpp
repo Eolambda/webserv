@@ -7,9 +7,12 @@ bool is_cgi(Request *request, Client *client)
 {
 	std::string uri = request->getUri();
 	std::string path = extractPathFromURI(uri);
-	std::string extension = path.substr(path.find_last_of('.'));
+	std::string extension;
+	if (path.find_last_of('.') != std::string::npos)
+		extension = path.substr(path.find_last_of('.'));
+	else
+		return false;
 	std::map<std::string, std::string> cgi_extensions = client->getServer()->getCgiExtensions();
-
 
 	if (client->getResponse()->getIsDirectory() == true)
 		return false;
@@ -53,9 +56,7 @@ void handle_cgi(Client *client)
 	std::vector<std::string> command(2);
 	command[0] = program_path;
 	command[1] = file_path;
-	//only make it compatible with GET for now
-	if (request->getMethod() == "GET")
-		execute_cgi(command, generate_cgi_env(client, program_path, file_path), client);
+	execute_cgi(command, generate_cgi_env(client, program_path, file_path), client);
 }
 
 void execute_cgi(std::vector<std::string> cmd, std::vector<std::string> env, Client *client)
@@ -69,22 +70,42 @@ void execute_cgi(std::vector<std::string> cmd, std::vector<std::string> env, Cli
 		client->getCgiPipes()[1] = -1;
 		return;
 	}
+	if (client->getRequest()->getMethod() == "POST" && pipe(client->getCgiPipes_POST()) < 0)
+	{
+		close(client->getCgiPipes()[0]);
+		close(client->getCgiPipes()[1]);
+		client->getResponse()->setStatusCode("500");
+		client->getCgiPipes()[0] = -1;
+		client->getCgiPipes()[1] = -1;
+		client->getCgiPipes_POST()[0] = -1;
+		client->getCgiPipes_POST()[1] = -1;
+		return;
+	}
 	if ((pid = fork()) < 0)
 	{
 		client->getResponse()->setStatusCode("500");
 		client->getCgiPipes()[0] = -1;
 		client->getCgiPipes()[1] = -1;
+		if (client->getRequest()->getMethod() == "POST")
+		{
+			close(client->getCgiPipes_POST()[0]);
+			close(client->getCgiPipes_POST()[1]);
+			client->getCgiPipes_POST()[0] = -1;
+			client->getCgiPipes_POST()[1] = -1;
+		}
 		return;
 	}
-
 	if (pid == 0)
 	{
-		//close unused pipe and duplicate pipe to stdout
 		close(client->getCgiPipes()[0]);
+		close(client->getCgiPipes_POST()[1]);
 
-		if (dup2(client->getCgiPipes()[1], STDOUT_FILENO) < 0)
+		if (dup2(client->getCgiPipes()[1], STDOUT_FILENO) < 0
+			|| (client->getRequest()->getMethod() == "POST" && dup2(client->getCgiPipes_POST()[0], STDIN_FILENO) < 0))
 		{
 			close(client->getCgiPipes()[1]);
+			if (client->getRequest()->getMethod() == "POST")
+				close(client->getCgiPipes_POST()[0]);
 			exit(EXIT_FAILURE);
 		}
 
@@ -104,6 +125,8 @@ void execute_cgi(std::vector<std::string> cmd, std::vector<std::string> env, Cli
 			delete[] args.data();
 			delete[] envp.data();
 			close (client->getCgiPipes()[1]);
+			if (client->getRequest()->getMethod() == "POST")
+				close(client->getCgiPipes_POST()[0]);
 			exit(EXIT_FAILURE);
 		}
 
@@ -111,10 +134,17 @@ void execute_cgi(std::vector<std::string> cmd, std::vector<std::string> env, Cli
 		delete[] args.data();
 		delete[] envp.data();
 		close (client->getCgiPipes()[1]);
+		if (client->getRequest()->getMethod() == "POST")
+			close(client->getCgiPipes_POST()[0]);
 		exit(EXIT_FAILURE);
 	}
 	else
+	{
+		client->setTimer(get_time());
 		close(client->getCgiPipes()[1]);
+		if (client->getRequest()->getMethod() == "POST")
+			close(client->getCgiPipes_POST()[0]);
+	}
 }
 
 std::vector<std::string> generate_cgi_env(Client *client, std::string command, std::string file)

@@ -32,6 +32,7 @@ Request::Request(const Request &request)
 	_parsing_state = request._parsing_state;
 	_full_path = request._full_path;
 	_max_body_size = request._max_body_size;
+	_CGI_send_buffer = request._CGI_send_buffer;
 }
 
 Request::~Request()
@@ -52,6 +53,7 @@ Request &Request::operator=(const Request &copy)
 	_parsing_state = copy._parsing_state;
 	_full_path = copy._full_path;
 	_max_body_size = copy._max_body_size;
+	_CGI_send_buffer = copy._CGI_send_buffer;
 	return *this;
 }
 
@@ -125,6 +127,11 @@ Client &Request::getClient(void)
 	return *_client;
 }
 
+const std::string &Request::getCGIsendBuffer(void) const
+{
+	return _CGI_send_buffer;
+}
+
 const bool &Request::isComplete(void) const
 {
 	return _is_complete;
@@ -169,6 +176,11 @@ void Request::setMaxBodySize(int max_body_size)
 	_max_body_size = max_body_size;
 }
 
+void Request::setCGIsendBuffer(const std::string &buffer)
+{
+	_CGI_send_buffer = buffer;
+}
+
 void Request::resetRequest(void)
 {
 	_buffer.clear();
@@ -183,6 +195,7 @@ void Request::resetRequest(void)
 	_parsing_state = 0;
 	_full_path.clear();
 	_max_body_size = 0;
+	_CGI_send_buffer.clear();
 }
 
 //parse the first line of the request

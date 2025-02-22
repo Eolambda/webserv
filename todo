@@ -2,23 +2,14 @@
 
   todo sujet correct et vrac :
 
-- error site : 
-  - essaie acceder delete testing 
-  - error during redirect
-- ajouter cgi
-  - functions plus poussees pour decomposer uri mieux (au cas ou ?name=stuff apres extension)
-    - voir existence uri_attributes et a quoi ca correspond 
-    - si nul rework 
-    - sinon rename et creer autre vraie variable uri attributes
-  - ajouter timeout pour les cgi
-- voir pour handle cgi get si cgi pas defini (default behavior : renvoie juste file)
+- handles post cgi (avec stdin, check gpt)
+  - bien ajouter le contenu apres ? en option au programme si necessaire
+- ajouter cookies
 - meilleure gestion des headers (both request et response)
   - check si headers sont ok 
   - voir si mandatory headers
   - voir si on rajoute des headers avant de recup la cgi
 - monitorer fd des cgi avec select
-- handles post cgi (avec stdin, check gpt)
-- ajouter cookies
 - same port multiple times should not work
 - A request to your server should never hang forever.
 - no leaks
@@ -26,5 +17,7 @@
 - fonction pour check les headers au moment du parsing de la request
   - pourrait mieux tester max body size
 - rendre compatible chrome 
+- demander si systeme cgi-bin / cgi_scripts marche bien et est conforme
 - ajouter champ simple upload fichiers sur le site (envoie requete pour upload un fichier sur /uploads/)
 - idem voir moyen de tester DELETE
+- retirer debug stuff
