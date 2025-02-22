@@ -6,6 +6,15 @@ Request::Request()
 	_is_valid = 0;
 	_parsing_state = 0;
 	_client = NULL;
+	_cookie_buffer = "";
+	_max_body_size = 0;
+	_buffer = "";
+	_last_line = "";
+	_method = "";
+	_uri = "";
+	_http_version = "";
+	_body = "";
+	_CGI_send_buffer = "";
 }
 
 Request::Request(Client *client)
@@ -262,6 +271,8 @@ bool Request::parseHeaders(std::string data)
 	//we can eventually manually check for allowed headers here
 	//add the key value pair to the headers
 	_headers[key] = value;
+	if (key == "Cookie")
+		_cookie_buffer = value;
 	return true;
 }
 

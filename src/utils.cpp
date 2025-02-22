@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:20:32 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/22 16:50:27 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/22 20:51:39 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -172,6 +172,8 @@ std::string extractAttributesFromURI(const std::string uri)
 	size_t pos = attributes.find("?");
 	if (pos != std::string::npos)
 		attributes = attributes.substr(pos + 1);
+	else
+		attributes = "";
 	return decodeURI(attributes);
 }
 

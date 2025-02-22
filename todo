@@ -2,9 +2,19 @@
 
   todo sujet correct et vrac :
 
-- voir pour direction apres upload post, on affiche quoi ?
-- handles post cgi (avec stdin, check gpt), bien ajouter le contenu apres ? en option au programme si necessaire
 - ajouter cookies
+  - lors du parsing de la request, chercher Cookie header et recup
+  - check if parsed cookies include a session identifier SESSIONID
+    -  si pas present generer nouveau session id
+    -  sauvegarder lentree dans notre session store (map <string:string>)
+    -  set a flag in the response to add a Set-Cookie header
+    -  apres avoir process la session une fois quand on a un ID valide, on peut update et retrouver la session data pendant le request handling
+      - on retrieve la data du session store en utilisant le SESSION ID
+      - (on update les session data pour notre application)
+      - quand on envoie reponse, si nouvelle session cree, Set-Cookie header suffit pour reponse
+    -  clean les cookies dans la main loop
+- close client sockets in client 
+- voir si besoin de clean dans main loop a la fin, si les objets le font pas tout seuls dans leur destructeur
 - meilleure gestion des headers (both request et response)
   - check si headers sont ok 
   - voir si mandatory headers
@@ -13,11 +23,9 @@
 - same port multiple times should not work
 - A request to your server should never hang forever.
   - mettre timer ailleurs (le demarrer reception request et le retester avant reponse) 
+- add more check config parsing (ports etc)
 - no leaks
 - retest max body size, especially si header est pas un nombre
 - fonction pour check les headers au moment du parsing de la request
   - pourrait mieux tester max body size
-- rendre compatible chrome 
-- demander si systeme cgi-bin / cgi_scripts marche bien et est conforme
-- idem voir moyen de tester DELETE
 - retirer debug stuff

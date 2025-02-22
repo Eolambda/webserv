@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:24:48 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/22 12:39:52 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/22 22:21:49 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,13 @@
 
 class Location;
 class Client;
+
+struct SessionData
+{
+	std::string data;
+	double 		last_access;
+};
+
 
 class Server
 {
@@ -41,6 +48,7 @@ public:
 	void setDefaultFile(const std::string &value);
 	void setCgiBin(const std::string &value);
 	void setUploads(const std::string &value);
+	void addNewSession(const std::string &key, const std::string &value);
 
 	std::vector<Location> &getLocations(void);
 	std::map<int, std::string> &getErrorPages(void);
@@ -55,6 +63,7 @@ public:
 	std::string &getUploads(void);
 	std::map<std::string, std::string> &getCgiExtensions(void);
 	int getSocket(void) const;
+	std::map<std::string, SessionData> &getSessionStore(void);
 
 	void initSocket(void);
 
@@ -84,5 +93,6 @@ private:
 	int _sockfd;
 	struct sockaddr_in _addr;
 	id_t _addr_len;
+	std::map<std::string, SessionData> _session_store;
 };
 #endif

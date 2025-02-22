@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:26:37 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/22 17:00:33 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/22 22:23:44 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,8 @@ Server::~Server()
 		if (it->second == _sockfd)
 			close(it->first);
 	}
+	for (std::map<std::string, struct SessionData>::iterator it = _session_store.begin(); it != _session_store.end(); ++it)
+		_session_store.erase(it);
 }
 
 Server &Server::operator=(const Server &copy)
@@ -50,6 +52,7 @@ Server &Server::operator=(const Server &copy)
 	_uploads = copy._uploads;
 	_addr = copy._addr;
 	_addr_len = copy._addr_len;
+	_session_store = copy._session_store;
 	return (*this);
 }
 
@@ -226,6 +229,18 @@ void Server::setUploads(const std::string &value)
 	_uploads = value;
 }
 
+void Server::addNewSession(const std::string &key, const std::string &value)
+{
+	struct SessionData new_session;
+	
+	new_session.data = value;
+	new_session.last_access = get_time();
+	_session_store[key] = new_session;
+}
+
+//Getters
+
+
 std::vector<Location> &Server::getLocations(void)
 {
 	return (_locations);
@@ -285,6 +300,7 @@ std::map<std::string, std::string> &Server::getCgiExtensions(void)
 {
 	return (_cgi_extensions);
 }
+
 
 void Server::readRequest(Client &client)
 {

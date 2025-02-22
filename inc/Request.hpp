@@ -58,6 +58,7 @@ class Request
 		std::map<std::string, std::string> _headers;
 		std::string _body;
 		std::string _CGI_send_buffer;
+		std::string _cookie_buffer;
 		bool _is_complete;
 		int _is_valid;
 		int _parsing_state; //0 = first line, 1 = headers, 2 = body

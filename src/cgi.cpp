@@ -165,7 +165,7 @@ std::vector<std::string> generate_cgi_env(Client *client, std::string command, s
 	env.push_back("GATEWAY_INTERFACE=CGI/1.1");
 	env.push_back("PATH_INFO=");
 	env.push_back("PATH_TRANSLATED=");
-	env.push_back("QUERY_STRING="); //part of the URI that follows the ?
+	env.push_back("QUERY_STRING=" + client->getResponse()->getURIAttributes());
 	value = "REMOTE_ADDR=";
 	value += inet_ntoa(client->getAddr().sin_addr);
 	env.push_back(value);
