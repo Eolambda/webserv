@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:20:32 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/21 16:51:51 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/22 16:50:27 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -221,7 +221,7 @@ bool isAnErrorResponse(const std::string error_number)
 	
 	if (error_code == 0 
 		|| (error_code >= 200 && error_code <= 204)
-		|| (error_code >= 301 && error_code <= 302)
+		|| (error_code >= 301 && error_code <= 303)
 		|| error_code == 401)
 		return false;
 	return true;

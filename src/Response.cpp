@@ -10,6 +10,8 @@ Response::Response()
 	_content_length = 0;
 	_buffer = "";
 	_cgi_buffer = "";
+	_is_cgi = false;
+	_is_post_upload = false;
 }
 
 Response::Response(const Response &response)
@@ -140,6 +142,11 @@ void Response::setIsCgi(bool is_cgi)
 	_is_cgi = is_cgi;
 }
 
+void Response::setIsPostUpload(bool is_post_upload)
+{
+	_is_post_upload = is_post_upload;
+}
+
 
 
 std::string Response::getHeaders(void) const
@@ -241,6 +248,11 @@ bool Response::getIsCgi(void) const
 	return _is_cgi;
 }
 
+bool Response::getIsPostUpload(void) const
+{
+	return _is_post_upload;
+}
+
 
 void Response::resetResponse()
 {
@@ -274,6 +286,13 @@ void Response::prepareResponse()
 	if (!_body.empty() && _body.size() > _server->getMaxBodySize())
 		_status_code = "413";
 
+	if (_request->getMethod() == "POST" && _is_post_upload == true && _status_code == "201")
+	{
+		_status_code = "303";
+		if (_redirection.empty())
+			_redirection = "/";
+	}
+
 	if (isAnErrorResponse(_status_code))
 		defineResponseErrorPage();
 
@@ -289,7 +308,7 @@ void Response::prepareResponse()
 		defineContentType();
 		defineResponseHeaders();
 		_buffer += _headers;
-		if (_status_code != "301" && _status_code != "302" && _body.empty() == false)
+		if (_status_code != "301" && _status_code != "302" && _status_code != "303" && _body.empty() == false)
 			_buffer += _body;
 	}
 }
@@ -505,7 +524,7 @@ void Response::defineResponseHeaders()
 	_headers += "Server: " + _server->getServerName() + CRLF;
 	_headers += "Date: " + getCurrentDate() + CRLF;
 
-	if (_status_code == "301" || _status_code == "302")
+	if (_status_code == "301" || _status_code == "302" || _status_code == "303")
 	{
 		_headers += "Location: " + _redirection + CRLF;
 		_headers += std::string("Content-Length: 0") + CRLF;

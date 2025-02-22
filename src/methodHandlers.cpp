@@ -192,15 +192,15 @@ void Response::HandlePOST_multiform(std::string body, std::string content_type)
 		}
 	}
 
+
 	//check if uri is matching the uploads parameter of the server
-	std::string temp_uri_attributes = _uri_attributes;
+	std::string temp_uri_attributes = extractPathFromURI(_request->getUri());
 	if (temp_uri_attributes.back() != '/' && _server->getUploads().back() == '/')
 		temp_uri_attributes += "/";
 	else if (temp_uri_attributes.back() == '/' && _server->getUploads().back() != '/')
 		temp_uri_attributes.pop_back();
 
-
-	if (_uri_attributes == _server->getUploads())
+	if (temp_uri_attributes == _server->getUploads())
 	{
 		//loop through the map and upload the files
 		for (std::map<std::string, std::string>::iterator it = files.begin(); it != files.end(); ++it)
@@ -211,6 +211,7 @@ void Response::HandlePOST_multiform(std::string body, std::string content_type)
 				return ;
 			}
 		}
+		_is_post_upload = true;
 	}
 
 	_status_code = "201";

@@ -2,8 +2,8 @@
 
   todo sujet correct et vrac :
 
-- handles post cgi (avec stdin, check gpt)
-  - bien ajouter le contenu apres ? en option au programme si necessaire
+- voir pour direction apres upload post, on affiche quoi ?
+- handles post cgi (avec stdin, check gpt), bien ajouter le contenu apres ? en option au programme si necessaire
 - ajouter cookies
 - meilleure gestion des headers (both request et response)
   - check si headers sont ok 
@@ -12,12 +12,12 @@
 - monitorer fd des cgi avec select
 - same port multiple times should not work
 - A request to your server should never hang forever.
+  - mettre timer ailleurs (le demarrer reception request et le retester avant reponse) 
 - no leaks
 - retest max body size, especially si header est pas un nombre
 - fonction pour check les headers au moment du parsing de la request
   - pourrait mieux tester max body size
 - rendre compatible chrome 
 - demander si systeme cgi-bin / cgi_scripts marche bien et est conforme
-- ajouter champ simple upload fichiers sur le site (envoie requete pour upload un fichier sur /uploads/)
 - idem voir moyen de tester DELETE
 - retirer debug stuff

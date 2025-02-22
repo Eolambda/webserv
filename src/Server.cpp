@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:26:37 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/22 13:04:33 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/22 17:00:33 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -392,9 +392,13 @@ void Server::processRequest(Client &client)
 			//this is a redirection, we handle it
 			if ((*it).getRedirect().empty() == false)
 			{
-					client.getResponse()->setStatusCode("301");
 					client.getResponse()->setRedirection((*it).getRedirect());
-					return;
+					//only actively redirects on GET and DELETE, POST is handled differently
+					if (client.getRequest()->getMethod() == "GET" || client.getRequest()->getMethod() == "DELETE")
+					{
+						client.getResponse()->setStatusCode("301");
+						return;
+					}
 			}
 
 			//check if the method is allowed
@@ -426,7 +430,7 @@ void Server::processRequest(Client &client)
 		}
 	}
 
-		
+	//set full path
 	client.getResponse()->setFullPath(full_path);
 	client.getResponse()->setIsDirectory(isDirectory(full_path));
 
@@ -437,6 +441,7 @@ void Server::processRequest(Client &client)
 		return;
 	}
 	
+	//in case of POST, save the body size
 	if (client.getRequest()->getMethod() == "POST")
 		client.getResponse()->setContentLength(client.getRequest()->getBody().size());
 
