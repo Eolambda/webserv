@@ -15,6 +15,7 @@ Request::Request()
 	_http_version = "";
 	_body = "";
 	_CGI_send_buffer = "";
+	_creation_time = get_time();
 }
 
 Request::Request(Client *client)
@@ -144,6 +145,11 @@ const std::string &Request::getCGIsendBuffer(void) const
 const bool &Request::isComplete(void) const
 {
 	return _is_complete;
+}
+
+const double &Request::getCreationTime(void) const
+{
+	return _creation_time;
 }
 
 //setters

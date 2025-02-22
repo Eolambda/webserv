@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:20:32 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/22 20:51:39 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/22 22:38:41 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -375,4 +375,14 @@ bool uploadFile(const std::string &filename, const std::string &content)
 	file << content;
 	file.close();
 	return true;
+}
+
+std::string generateSessionId(void)
+{
+	std::string session_id = "";
+	std::string charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	
+	for (int i = 0; i < 32; i++)
+		session_id += charset[rand() % charset.length()];
+	return session_id;
 }

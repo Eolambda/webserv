@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:16:04 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/22 12:39:29 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/22 23:02:47 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,21 @@ std::map<int, int> fd_to_sockfd;
 fd_set current_fds, write_fds, read_fds;
 
 volatile sig_atomic_t loop = 1;
+
+void clean_cookies(std::vector<Server> &servers)
+{
+	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it)
+	{
+		std::map<std::string, struct SessionData> &session_store = it->getSessionStore();
+		for (std::map<std::string, struct SessionData>::iterator it2 = session_store.begin(); it2 != session_store.end();)
+		{
+			if (it2->second.last_access + COOKIES_EXPIRY_TIME < time(NULL))
+				it2 = session_store.erase(it2);
+			else
+				++it2;
+		}
+	}
+}
 
 //rebuild client lists, close all disconnected clients sockets and recalculates max_fd
 void remove_clients(std::vector<Server> &servers)
@@ -62,7 +77,12 @@ void handle_clients(std::vector<Server> &servers)
 		{
 			client = &(*it2);
 
-			if (FD_ISSET(client->getFd(), &read_fds))
+			if (client->getRequest() != NULL && client->getRequest()->getCreationTime() < (get_time() - REQUEST_TIMEOUT))
+			{
+				client->close_connection = true;
+				std::cout << GREEN << "Client " << client->getFd() << " : request timeout" << RESET << std::endl;
+			}
+			else if (FD_ISSET(client->getFd(), &read_fds))
 				(*it).readRequest(*client);
 			else if (client->getRequest()->isComplete() && client->getResponse()->getIsCgi() == true
 			&& client->getCgiPipes_POST()[1] != -1 && client->getRequest()->getMethod() == "POST")
@@ -114,6 +134,8 @@ void siginthandle(int sig)
 void loop_handle(std::vector<Server> &servers)
 {
 	int ret;
+
+	clean_cookies(servers);
 	
 	read_fds = write_fds = current_fds;
 	if ((ret = select(max_fd + 1, &read_fds, &write_fds, NULL, NULL) < 0) && loop == 1)

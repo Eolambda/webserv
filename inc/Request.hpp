@@ -40,6 +40,7 @@ class Request
 		const bool &isComplete(void) const;
 		Client &getClient(void);
 		const std::string &getCGIsendBuffer(void) const;
+		const double &getCreationTime(void) const;
 
 		void readData(std::string data);
 		void setRequestValidity(int value, bool is_complete);
@@ -65,6 +66,7 @@ class Request
 		std::string _full_path;
 		int _max_body_size;
 		Client *_client;
+		double _creation_time;
 };
 
 #endif

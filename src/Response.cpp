@@ -12,6 +12,7 @@ Response::Response()
 	_cgi_buffer = "";
 	_is_cgi = false;
 	_is_post_upload = false;
+	_sessionid = "";
 }
 
 Response::Response(const Response &response)
@@ -147,6 +148,11 @@ void Response::setIsPostUpload(bool is_post_upload)
 	_is_post_upload = is_post_upload;
 }
 
+void Response::setSessionId(const std::string &sessionid)
+{
+	_sessionid = sessionid;
+}
+
 
 
 std::string Response::getHeaders(void) const
@@ -252,6 +258,13 @@ bool Response::getIsPostUpload(void) const
 {
 	return _is_post_upload;
 }
+
+std::string Response::getSessionId(void) const
+{
+	return _sessionid;
+}
+
+
 
 
 void Response::resetResponse()
@@ -535,6 +548,8 @@ void Response::defineResponseHeaders()
 		_headers += "Content-Length: " + std::to_string(_body.size()) + CRLF;
 		//_headers += std::string("Connection: close") + CRLF;
 	}
+	if (_sessionid.empty() == false)
+		_headers += "Set-Cookie: session=" + _sessionid + "; Path=/; HttpOnly" + CRLF;
 	_headers += CRLF;
 }
 

@@ -32,6 +32,7 @@ class Response
 		void setCgiBuffer(const std::string &cgi_buffer);
 		void setIsCgi(bool is_cgi);
 		void setIsPostUpload(bool is_post_upload);
+		void setSessionId(const std::string &sessionid);
 
 		std::string getHeaders() const;
 		std::string getHeaders(const std::string &header) const;
@@ -52,6 +53,7 @@ class Response
 		std::string getCgiBuffer() const;
 		bool getIsCgi() const;
 		bool getIsPostUpload() const;
+		std::string getSessionId() const;
 
 		void handleGET(Client *client);
 		void handlePOST(Client *client);
@@ -82,6 +84,7 @@ class Response
 		std::string _http_version;
 		std::string _to_upload;
 		std::string _cgi_buffer;
+		std::string _sessionid;
 		bool _is_post_upload;
 		bool _is_directory;
 		bool _is_cgi;
