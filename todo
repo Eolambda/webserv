@@ -2,8 +2,10 @@
 
   todo sujet correct et vrac :
 
-- close client sockets in client 
-- voir si besoin de clean dans main loop a la fin, si les objets le font pas tout seuls dans leur destructeur
+- gerer gestion memoire proprement
+  - si client close ses fd, il va les close durant la copie et ca peut faire foirer le select
+  - donc doit les close intelligemment seulement a la fin de la session ou quand select le demande
+  - pareil pour les pipes ?
 - meilleure gestion des headers (both request et response)
   - check si headers sont ok 
   - voir si mandatory headers
@@ -13,8 +15,8 @@
 - A request to your server should never hang forever.
   - mettre timer ailleurs (le demarrer reception request et le retester avant reponse) 
 - add more check config parsing (ports etc)
-- no leaks
 - retest max body size, especially si header est pas un nombre
 - fonction pour check les headers au moment du parsing de la request
   - pourrait mieux tester max body size
 - retirer debug stuff
+- no leaks check

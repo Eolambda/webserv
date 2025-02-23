@@ -6,33 +6,15 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:16:04 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/23 12:38:40 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/23 13:17:01 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <webserv.hpp>
 
 int max_fd = 0;
-std::map<int, Server *> sockfd_to_server;
-std::map<int, int> fd_to_sockfd;
 fd_set current_fds, write_fds, read_fds;
-
 volatile sig_atomic_t loop = 1;
-
-void clean_cookies(std::vector<Server> &servers)
-{
-	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it)
-	{
-		std::map<std::string, struct SessionData> &session_store = it->getSessionStore();
-		for (std::map<std::string, struct SessionData>::iterator it2 = session_store.begin(); it2 != session_store.end();)
-		{
-			if (it2->second.last_access + COOKIES_EXPIRY_TIME < time(NULL))
-				it2 = session_store.erase(it2);
-			else
-				++it2;
-		}
-	}
-}
 
 //rebuild client lists, close all disconnected clients sockets and recalculates max_fd
 void remove_clients(std::vector<Server> &servers)
@@ -49,10 +31,8 @@ void remove_clients(std::vector<Server> &servers)
 			if (it2->close_connection)
 			{
 				FD_CLR(it2->getFd(), &current_fds);
-				if (close(it2->getFd()) < 0)
-					throw std::runtime_error("Error: Could not close socket");
+				it2->closeSockets();
 				std::cout << GREEN << "Client " << it2->getFd() << " : disconnected" << RESET << std::endl;				
-				fd_to_sockfd.erase(it2->getFd());
 				it2 = it->clients.erase(it2);
 			}
 			else
@@ -117,7 +97,6 @@ void check_new_clients(std::vector<Server> &servers)
 				max_fd = new_fd;
 
 			it->clients.push_back(Client(new_fd, new_addr, &(*it)));
-			fd_to_sockfd[new_fd] = it->getSocket();
 
 			std::cout << GREEN << "New connection from " << inet_ntoa(new_addr.sin_addr) << ":" << ntohs(new_addr.sin_port) << ": Client " << new_fd << RESET << std::endl;
 		}

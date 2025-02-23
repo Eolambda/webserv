@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:26:37 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/23 12:38:11 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/23 13:22:26 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,19 +24,17 @@ Server::Server(const Server &server)
 Server::~Server()
 {
 	//clean session store
-	for (std::map<std::string, struct SessionData>::iterator it = _session_store.begin(); it != _session_store.end(); ++it)
-		_session_store.erase(it);
+	for (std::map<std::string, struct SessionData>::iterator it = _session_store.begin(); it != _session_store.end();)
+		it = _session_store.erase(it);
 	//clean clients
 	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end();)
+	{
+		it->closeSockets();
 		it = clients.erase(it);
+	}
 	//close and clean sockets
 	if (_sockfd > 0)
 		close(_sockfd);
-	for (std::map<int, int>::iterator it = fd_to_sockfd.begin(); it != fd_to_sockfd.end(); ++it)
-	{
-		if (it->second == _sockfd)
-			close(it->first);
-	}
 }
 
 Server &Server::operator=(const Server &copy)
@@ -98,7 +96,6 @@ void Server::initSocket(void)
 	if (max_fd <= _sockfd)
 		max_fd = _sockfd;
 	
-	sockfd_to_server[_sockfd] = this;
 	FD_SET(_sockfd, &current_fds);
 
 	if (bind(_sockfd, (struct sockaddr *)&_addr, _addr_len) < 0)
@@ -524,111 +521,6 @@ void Server::processRequest(Client &client)
 		client.getResponse()->setStatusCode("405");
 
 	return;
-}
-
-//when the request is a CGI and a POST, we send the body to the child process
-void Server::sendCGI(Client &client)
-{
-	int ret;
-	double time = get_time();
-
-	if (time - client.getTimer() > CGI_TIMEOUT)
-	{
-		client.getResponse()->setStatusCode("500");
-		close(client.getCgiPipes_POST()[1]);
-		close(client.getCgiPipes()[0]);
-		client.getCgiPipes_POST()[0] = -1;
-		client.getCgiPipes_POST()[1] = -1;
-		client.getCgiPipes()[0] = -1;
-		client.getCgiPipes()[1] = -1;
-		client.getResponse()->setCgiBuffer("");
-		return;
-	}
-	
-	size_t body_size = client.getRequest()->getCGIsendBuffer().size();
-	if (body_size > 0)
-	{
-		if (body_size <= BUFFER_SIZE)
-			ret = write(client.getCgiPipes_POST()[1], client.getRequest()->getCGIsendBuffer().c_str(), body_size);
-		else
-			ret = write(client.getCgiPipes_POST()[1], client.getRequest()->getCGIsendBuffer().c_str(), BUFFER_SIZE);
-	}
-	else
-		ret = 0;
-
-	if (ret < 0)
-	{
-		client.getResponse()->setStatusCode("500");
-		close(client.getCgiPipes_POST()[1]);
-		close(client.getCgiPipes()[0]);
-		client.getCgiPipes_POST()[0] = -1;
-		client.getCgiPipes_POST()[1] = -1;
-		client.getCgiPipes()[0] = -1;
-		client.getCgiPipes()[1] = -1;
-		client.getResponse()->setCgiBuffer("");
-		return;
-	}
-	else if (ret == 0 || body_size == static_cast<size_t>(ret))
-	{
-		close(client.getCgiPipes_POST()[1]);
-		client.getCgiPipes_POST()[1] = -1;
-		client.getCgiPipes_POST()[0] = -1;
-	}
-	else
-		client.getRequest()->setCGIsendBuffer(client.getRequest()->getCGIsendBuffer().substr(ret));
-}
-
-
-//when the request is a CGI, we read the CGI output in order to build the response
-void Server::receiveCGI(Client &client)
-{
-	int ret;
-	char buffer[BUFFER_SIZE + 1];
-	double time = get_time();
-
-	if (time - client.getTimer() > CGI_TIMEOUT)
-	{
-		client.getResponse()->setStatusCode("500");
-		close(client.getCgiPipes()[0]);
-		client.getCgiPipes()[0] = -1;
-		client.getCgiPipes()[1] = -1;
-		client.getResponse()->setCgiBuffer("");
-		return;
-	}
-
-	ret = read(client.getCgiPipes()[0], buffer, BUFFER_SIZE);
-	if (ret < 0)
-	{
-		client.getResponse()->setStatusCode("500");
-		close (client.getCgiPipes()[0]);
-		client.getCgiPipes()[0] = -1;
-		client.getCgiPipes()[1] = -1;
-		
-	}
-	else if (ret == 0)
-	{
-		close(client.getCgiPipes()[0]);
-		client.getCgiPipes()[0] = -1;
-		client.getCgiPipes()[1] = -1;
-		//fetch status code from cgi buffer
-		//if there is the word "Status: " in the buffer, we fetch the status code
-		std::string cgi_buffer = client.getResponse()->getCgiBuffer();
-		size_t pos = cgi_buffer.find("Status: ");
-		if (pos != std::string::npos)
-		{
-			std::string status_code = cgi_buffer.substr(pos + 8, 3);
-			if (atoi(status_code.c_str()) <= 0)
-				status_code = "200";
-			client.getResponse()->setStatusCode(status_code);
-			//empty the buffer if error
-		}
-		else
-			client.getResponse()->setStatusCode("200");}
-	else
-	{
-		buffer[ret] = '\0';
-		client.getResponse()->setCgiBuffer(client.getResponse()->getCgiBuffer() + buffer);
-	}
 }
 
 void Server::sendResponse(Client &client)

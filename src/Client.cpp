@@ -11,7 +11,7 @@ Client::Client()
 	_cgi_pipes_POST[0] = -1;
 	_cgi_pipes_POST[1] = -1;
 	close_connection = false;
-	_timeout = 0;
+	_cgitimeout = 0;
 }
 
 Client::Client(int fd, struct sockaddr_in addr, Server *server)
@@ -24,7 +24,7 @@ Client::Client(int fd, struct sockaddr_in addr, Server *server)
 	_cgi_pipes_POST[1] = -1;
 	_server = server;
 	close_connection = false;
-	_timeout = 0;
+	_cgitimeout = 0;
 	_request = new Request(this);
 	_response = new Response();
 }
@@ -39,24 +39,13 @@ Client::Client(const Client &client)
 	_server = client._server;
 	_addr = client._addr;
 	close_connection = client.close_connection;
-	_timeout = client._timeout;
+	_cgitimeout = client._cgitimeout;
 	_request = new Request(*(client._request));
 	_response = new Response(*(client._response));
 }
 
 Client::~Client()
 {
-	if (_fd > 0)
-		close(_fd);
-	if (_cgi_pipes[0] > 0)
-		close(_cgi_pipes[0]);
-	if (_cgi_pipes[1] > 0)
-		close(_cgi_pipes[1]);
-	if (_cgi_pipes_POST[0] > 0)
-		close(_cgi_pipes_POST[0]);
-	if (_cgi_pipes_POST[1] > 0)
-		close(_cgi_pipes_POST[1]);
-
 	delete _request;
 	delete _response;
 }
@@ -76,13 +65,27 @@ Client &Client::operator=(const Client &copy)
 	_server = copy._server;
 	_addr = copy._addr;
 	close_connection = copy.close_connection;
-	_timeout = copy._timeout;
+	_cgitimeout = copy._cgitimeout;
 	return *this;
 }
 
 bool Client::operator==(const Client &copy) const
 {
 	return (_fd == copy._fd);
+}
+
+void Client::closeSockets()
+{
+	if (_fd > 0)
+		close(_fd);
+	if (_cgi_pipes[0] > 0)
+		close(_cgi_pipes[0]);
+	if (_cgi_pipes[1] > 0)
+		close(_cgi_pipes[1]);
+	if (_cgi_pipes_POST[0] > 0)
+		close(_cgi_pipes_POST[0]);
+	if (_cgi_pipes_POST[1] > 0)
+		close(_cgi_pipes_POST[1]);
 }
 
 void Client::setFd(const int fd)
@@ -95,9 +98,9 @@ void Client::setServer(Server *server)
 	_server = server;
 }
 
-void Client::setTimer(double timeout)
+void Client::setCGITimer(double timeout)
 {
-	_timeout = timeout;
+	_cgitimeout = timeout;
 }
 
 struct sockaddr_in Client::getAddr()
@@ -135,9 +138,9 @@ int *Client::getCgiPipes_POST()
 	return _cgi_pipes_POST;
 }
 
-double Client::getTimer()
+double Client::getCGITimer()
 {
-	return _timeout;
+	return _cgitimeout;
 }
 
 void Client::resetMessages()
@@ -147,9 +150,17 @@ void Client::resetMessages()
 
 	_request = new Request(this);
 	_response = new Response();
-	_timeout = 0;
+	_cgitimeout = 0;
+	if (_cgi_pipes[0] > 0)
+		close(_cgi_pipes[0]);
 	_cgi_pipes[0] = -1;
+	if (_cgi_pipes[1] > 0)
+		close(_cgi_pipes[1]);
 	_cgi_pipes[1] = -1;
+	if (_cgi_pipes_POST[0] > 0)
+		close(_cgi_pipes_POST[0]);
 	_cgi_pipes_POST[0] = -1;
+	if (_cgi_pipes_POST[1] > 0)
+		close(_cgi_pipes_POST[1]);
 	_cgi_pipes_POST[1] = -1;
 }

@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:20:32 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/23 12:44:11 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/23 13:15:07 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -249,7 +249,7 @@ std::string trim_spaces(std::string &s)
 void shutdown_server(std::vector<Server> &servers)
 {
 	//erase all servers
-	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it)
+	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end();)
 		it = servers.erase(it);
 }
 
@@ -368,4 +368,19 @@ std::string generateSessionId(void)
 	for (int i = 0; i < 32; i++)
 		session_id += charset[rand() % charset.length()];
 	return session_id;
+}
+
+void clean_cookies(std::vector<Server> &servers)
+{
+	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it)
+	{
+		std::map<std::string, struct SessionData> &session_store = it->getSessionStore();
+		for (std::map<std::string, struct SessionData>::iterator it2 = session_store.begin(); it2 != session_store.end();)
+		{
+			if (it2->second.last_access + COOKIES_EXPIRY_TIME < time(NULL))
+				it2 = session_store.erase(it2);
+			else
+				++it2;
+		}
+	}
 }
