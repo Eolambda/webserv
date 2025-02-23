@@ -2,21 +2,13 @@
 
   todo sujet correct et vrac :
 
-- gerer gestion memoire proprement
-  - si client close ses fd, il va les close durant la copie et ca peut faire foirer le select
-  - donc doit les close intelligemment seulement a la fin de la session ou quand select le demande
-  - pareil pour les pipes ?
-- meilleure gestion des headers (both request et response)
-  - check si headers sont ok 
-  - voir si mandatory headers
-  - voir si on rajoute des headers avant de recup la cgi
+- upload marche pas avec png
+  - segfault
 - monitorer fd des cgi avec select
-- same port multiple times should not work
-- A request to your server should never hang forever.
-  - mettre timer ailleurs (le demarrer reception request et le retester avant reponse) 
 - add more check config parsing (ports etc)
-- retest max body size, especially si header est pas un nombre
-- fonction pour check les headers au moment du parsing de la request
-  - pourrait mieux tester max body size
-- retirer debug stuff
+  - same port same addr multiple times should not work
+- pour close client fd et copy client, voir si y a pas meilleure solution 
+  - on dirait que chaque client cree est copie a un moment 
+  - pdt la copie il est delete et recree 
+  - voir si on peut eviter ca (surement un erase dans create new client ou autre)
 - no leaks check

@@ -25,6 +25,7 @@ class Request
 		void setBody(const std::string &body);
 		void setMaxBodySize(int max_body_size);
 		void setCGIsendBuffer(const std::string &buffer);
+		void setContentLength(const std::string &content_length);
 
 		const std::string &getBuffer(void) const;
 		const std::string &getLastLine(void) const;
@@ -42,6 +43,7 @@ class Request
 		const std::string &getCGIsendBuffer(void) const;
 		const double &getCreationTime(void) const;
 		const std::string &getCookieBuffer(void) const;
+		const std::string &getContentLength(void) const;
 
 		void readData(std::string data);
 		void setRequestValidity(int value, bool is_complete);
@@ -68,6 +70,7 @@ class Request
 		int _max_body_size;
 		Client *_client;
 		double _creation_time;
+		std::string _content_length;
 };
 
 #endif

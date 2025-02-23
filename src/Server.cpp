@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:26:37 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/23 13:22:26 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/23 23:30:25 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,12 +26,15 @@ Server::~Server()
 	//clean session store
 	for (std::map<std::string, struct SessionData>::iterator it = _session_store.begin(); it != _session_store.end();)
 		it = _session_store.erase(it);
+		
 	//clean clients
 	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end();)
 	{
 		it->closeSockets();
+		std::cout << BLUE << "Client " << it->getFd() << " : disconnected" << RESET << std::endl;
 		it = clients.erase(it);
 	}
+	
 	//close and clean sockets
 	if (_sockfd > 0)
 		close(_sockfd);
@@ -315,7 +318,7 @@ void Server::readRequest(Client &client)
 	int bytes_received;
 	int client_fd = client.getFd();
 
-	bytes_received = recv(client_fd, buffer, sizeof(buffer), 0);
+	bytes_received = recv(client_fd, buffer, BUFFER_SIZE, 0);
 
 	if (bytes_received < 0)
 	{
@@ -331,31 +334,33 @@ void Server::readRequest(Client &client)
 
 	buffer[bytes_received] = '\0';
 
+	if (debug)
+		std::cout << CYAN << "Request data received from client " << client_fd << RESET << std::endl;
+
 	if (!client.getRequest()->isComplete())
-	{
-			//debug
-			std::cout << GREEN << "Request received from client " << client_fd << RESET << std::endl;
-		
-		client.getRequest()->readData(buffer);
+	{	
+		std::string data(buffer, bytes_received);	
+		client.getRequest()->readData(data);
 
 		if (client.getRequest()->isComplete())
 		{
 			
-				//debug stuff
-				std::cout << std::endl;
-				std::cout << "--- Request received by client " << client.getFd() << " ---" << std::endl;
-				std::cout << "Full buffer : " << client.getRequest()->getBuffer() << std::endl;
-				std::cout << "Method : " << client.getRequest()->getMethod() << std::endl;
-				std::cout << "URI : " << client.getRequest()->getUri() << std::endl;
-				std::cout << "HTTP version : " << client.getRequest()->getHttpVersion() << std::endl;
-				std::cout << "Body : " << client.getRequest()->getBody() << std::endl;
-				std::cout << "Headers : " << std::endl;
+			if (debug)
+			{
+				std::cout << CYAN << std::endl << RESET;
+				std::cout << CYAN << "--- Request received by client " << client.getFd() << " ---" << std::endl << RESET;;
+				std::cout << CYAN << "Full buffer : " << client.getRequest()->getBuffer() << std::endl << RESET;;
+				std::cout << CYAN << "Method : " << client.getRequest()->getMethod() << std::endl << RESET;;
+				std::cout << CYAN << "URI : " << client.getRequest()->getUri() << std::endl << RESET;;
+				std::cout << CYAN << "HTTP version : " << client.getRequest()->getHttpVersion() << std::endl << RESET;;
+				std::cout << CYAN << "Body : " << client.getRequest()->getBody() << std::endl << RESET;;
+				std::cout << CYAN << "Headers : " << std::endl << RESET;;
 				for (std::map<std::string, std::string>::iterator it = client.getRequest()->getHeaders().begin(); it != client.getRequest()->getHeaders().end(); ++it)
-					std::cout << it->first << ": " << it->second << std::endl;
-				std::cout << "Request validity : " << client.getRequest()->getRequestValidity() << std::endl;
-				std::cout << "--- End of request, processing it ---" << std::endl;
-				std::cout << std::endl;
-
+					std::cout << CYAN << it->first << ": " << it->second << std::endl << RESET;;
+				std::cout << CYAN << "Request validity : " << client.getRequest()->getRequestValidity() << std::endl << RESET;;
+				std::cout << CYAN << "--- End of request, processing it ---" << std::endl << RESET;;
+				std::cout << CYAN << std::endl << RESET;
+			}
 
 			processRequest(client);
 		}
@@ -534,25 +539,28 @@ void Server::sendResponse(Client &client)
 		client.getResponse()->is_being_written = true;
 
 
-			//print response for debug
-			std::cout << std::endl;
-			std::cout << "--- Response generated for client " << client.getFd() << " ---" << std::endl;
-			std::cout << "Status code : " << client.getResponse()->getStatusCode() << std::endl;
-			std::cout << "Status message : " << client.getResponse()->getStatusMessage() << std::endl;
-			std::cout << "Headers : " << std::endl;
-			std::cout << client.getResponse()->getHeaders() << std::endl;
-			std::cout << "Body : " << std::endl;
-			std::cout << client.getResponse()->getBody() << std::endl;
-			std::cout << "Full path : " << client.getResponse()->getFullPath() << std::endl;
-			std::cout << "URI attributes : " << client.getResponse()->getURIAttributes() << std::endl;
-			std::cout << "Redirection : " << client.getResponse()->getRedirection() << std::endl;
-			std::cout << "Content type : " << client.getResponse()->getContentType() << std::endl;
-			std::cout << "HTTP version : " << client.getResponse()->getHTTPVersion() << std::endl;
-			std::cout << "Is directory : " << client.getResponse()->getIsDirectory() << std::endl;
-			std::cout << "Is CGI : " << client.getResponse()->getIsCgi() << std::endl;
-			std::cout << "CGI Buffer : " << client.getResponse()->getCgiBuffer() << std::endl;
-			std::cout << "--- End of response ---" << std::endl;
-			std::cout << std::endl;
+		//print response for debug
+		if (debug)
+		{
+			std::cout << PURPLE << std::endl;
+			std::cout << PURPLE << "--- Response generated for client " << client.getFd() << " ---" << std::endl << RESET;
+			std::cout << PURPLE << "Status code : " << client.getResponse()->getStatusCode() << std::endl << RESET;
+			std::cout << PURPLE << "Status message : " << client.getResponse()->getStatusMessage() << std::endl << RESET;
+			std::cout << PURPLE << "Headers : " << std::endl << RESET;
+			std::cout << PURPLE << client.getResponse()->getHeaders() << std::endl << RESET;
+			std::cout << PURPLE << "Body : " << std::endl << RESET;
+			std::cout << PURPLE << client.getResponse()->getBody() << std::endl << RESET;
+			std::cout << PURPLE << "Full path : " << client.getResponse()->getFullPath() << std::endl << RESET;
+			std::cout << PURPLE << "URI attributes : " << client.getResponse()->getURIAttributes() << std::endl << RESET;
+			std::cout << PURPLE << "Redirection : " << client.getResponse()->getRedirection() << std::endl << RESET;
+			std::cout << PURPLE << "Content type : " << client.getResponse()->getContentType() << std::endl << RESET;
+			std::cout << PURPLE << "HTTP version : " << client.getResponse()->getHTTPVersion() << std::endl << RESET;
+			std::cout << PURPLE << "Is directory : " << client.getResponse()->getIsDirectory() << std::endl << RESET;
+			std::cout << PURPLE << "Is CGI : " << client.getResponse()->getIsCgi() << std::endl << RESET;
+			std::cout << PURPLE << "CGI Buffer : " << client.getResponse()->getCgiBuffer() << std::endl << RESET;
+			std::cout << PURPLE << "--- End of response ---" << std::endl << RESET;
+			std::cout << PURPLE << std::endl << RESET;
+		}
 	}
 
 	//we write the response

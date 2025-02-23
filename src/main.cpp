@@ -6,12 +6,13 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:16:04 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/23 13:17:01 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/23 13:30:23 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <webserv.hpp>
 
+int debug = 1;
 int max_fd = 0;
 fd_set current_fds, write_fds, read_fds;
 volatile sig_atomic_t loop = 1;

@@ -16,6 +16,7 @@ Request::Request()
 	_body = "";
 	_CGI_send_buffer = "";
 	_creation_time = get_time();
+	_content_length = "";
 }
 
 Request::Request(Client *client)
@@ -35,6 +36,7 @@ Request::Request(Client *client)
 	_body = "";
 	_CGI_send_buffer = "";
 	_creation_time = get_time();
+	_content_length = "";
 }
 
 Request::Request(const Request &request)
@@ -54,6 +56,7 @@ Request::Request(const Request &request)
 	_CGI_send_buffer = request._CGI_send_buffer;
 	_creation_time = request._creation_time;
 	_client = request._client;
+	_content_length = request._content_length;
 }
 
 Request::~Request()
@@ -75,6 +78,9 @@ Request &Request::operator=(const Request &copy)
 	_full_path = copy._full_path;
 	_max_body_size = copy._max_body_size;
 	_CGI_send_buffer = copy._CGI_send_buffer;
+	_creation_time = copy._creation_time;
+	_client = copy._client;
+	_content_length = copy._content_length;
 	return *this;
 }
 
@@ -168,6 +174,11 @@ const double &Request::getCreationTime(void) const
 	return _creation_time;
 }
 
+const std::string &Request::getContentLength(void) const
+{
+	return _content_length;
+}
+
 //setters
 
 
@@ -210,6 +221,11 @@ void Request::setMaxBodySize(int max_body_size)
 void Request::setCGIsendBuffer(const std::string &buffer)
 {
 	_CGI_send_buffer = buffer;
+}
+
+void Request::setContentLength(const std::string &content_length)
+{
+	_content_length = content_length;
 }
 
 void Request::resetRequest(void)
@@ -298,6 +314,7 @@ bool Request::parseHeaders(std::string data)
 	return true;
 }
 
+//can be transformed into a global check header function later
 bool Request::checkBodyContentLength(std::string data)
 {
 	//if content length is not present, error
@@ -374,6 +391,7 @@ void Request::readData(std::string data)
 		{
 			_parsing_state = REQUEST_BODY;
 			//if method is not post, we consider the request complete
+			//can check mandatory headers here if needed later
 			if (_method != "POST")
 			{
 				_buffer += data.substr(0, pos + 2);
@@ -412,7 +430,6 @@ void Request::readData(std::string data)
 			return;
 		}
 
-
 		//we add the line to the buffer
 		_buffer += data.substr(0, pos + 2);
 		//we trim the beginning of the line and continue the loop
@@ -423,6 +440,7 @@ void Request::readData(std::string data)
 	//and we check that body is complete by comparing with content length
 	if (_parsing_state == REQUEST_BODY && _method == "POST")
 	{
+
 		if (checkBodyContentLength(data.substr(0, pos + 2)) == false)
 		{
 			setRequestValidity(413, true);

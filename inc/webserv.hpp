@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:16:01 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/22 22:57:40 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/23 13:34:51 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,7 @@
 #define GREY "\033[90m"
 #define BRIGHT_RED "\033[91m"
 #define BRIGHT_GREEN "\033[92m"
+#define PURPLE "\033[95m"
 #define RESET "\033[0m"
 
 #define BUFFER_SIZE 4096
@@ -91,8 +92,7 @@ void parseServerBlock(const std::string &key, const std::string &value, Server &
 void parseLocationBlock(const std::string &key, const std::string &value, Server &current_server);
 
 extern int max_fd;
-extern std::map<int, Server *> sockfd_to_server;
-extern std::map<int, int> fd_to_sockfd;
+extern int debug;
 extern fd_set current_fds, write_fds, read_fds;
 
 #endif
