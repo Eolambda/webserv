@@ -26,6 +26,15 @@ Request::Request(Client *client)
 	_client = client;
 	if (_client != NULL && _client->getServer() != NULL)
 		_max_body_size = _client->getServer()->getMaxBodySize();
+	_cookie_buffer = "";
+	_buffer = "";
+	_last_line = "";
+	_method = "";
+	_uri = "";
+	_http_version = "";
+	_body = "";
+	_CGI_send_buffer = "";
+	_creation_time = get_time();
 }
 
 Request::Request(const Request &request)
@@ -43,6 +52,8 @@ Request::Request(const Request &request)
 	_full_path = request._full_path;
 	_max_body_size = request._max_body_size;
 	_CGI_send_buffer = request._CGI_send_buffer;
+	_creation_time = request._creation_time;
+	_client = request._client;
 }
 
 Request::~Request()
@@ -140,6 +151,11 @@ Client &Request::getClient(void)
 const std::string &Request::getCGIsendBuffer(void) const
 {
 	return _CGI_send_buffer;
+}
+
+const std::string &Request::getCookieBuffer(void) const
+{
+	return _cookie_buffer;
 }
 
 const bool &Request::isComplete(void) const

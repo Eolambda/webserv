@@ -2,8 +2,6 @@
 
   todo sujet correct et vrac :
 
-- ajouter cookies
-    -  clean les cookies dans la main loop
 - close client sockets in client 
 - voir si besoin de clean dans main loop a la fin, si les objets le font pas tout seuls dans leur destructeur
 - meilleure gestion des headers (both request et response)

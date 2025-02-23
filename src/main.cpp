@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:16:04 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/22 23:02:47 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/23 12:38:40 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,7 @@ void handle_clients(std::vector<Server> &servers)
 			client = &(*it2);
 
 			if (client->getRequest() != NULL && client->getRequest()->getCreationTime() < (get_time() - REQUEST_TIMEOUT))
-			{
+			{				
 				client->close_connection = true;
 				std::cout << GREEN << "Client " << client->getFd() << " : request timeout" << RESET << std::endl;
 			}
@@ -191,7 +191,7 @@ int main(int argc, char **argv)
 		while (loop)
 			loop_handle(servers);
 		
-		close_all_sockets(servers);
+		shutdown_server(servers);
 		std::cout << BLUE << "All sockets closed, exiting..." << RESET << std::endl;
 	}
 	catch (std::exception &e)

@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:26:37 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/22 23:04:03 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/23 12:38:11 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,13 @@ Server::Server(const Server &server)
 
 Server::~Server()
 {
+	//clean session store
+	for (std::map<std::string, struct SessionData>::iterator it = _session_store.begin(); it != _session_store.end(); ++it)
+		_session_store.erase(it);
+	//clean clients
+	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end();)
+		it = clients.erase(it);
+	//close and clean sockets
 	if (_sockfd > 0)
 		close(_sockfd);
 	for (std::map<int, int>::iterator it = fd_to_sockfd.begin(); it != fd_to_sockfd.end(); ++it)
@@ -30,8 +37,6 @@ Server::~Server()
 		if (it->second == _sockfd)
 			close(it->first);
 	}
-	for (std::map<std::string, struct SessionData>::iterator it = _session_store.begin(); it != _session_store.end(); ++it)
-		_session_store.erase(it);
 }
 
 Server &Server::operator=(const Server &copy)
@@ -474,34 +479,36 @@ void Server::processRequest(Client &client)
 	else
 		client.getResponse()->setIsCgi(false);
 
-
 	//check if in the cookie data there is a session id
 	if (client.getRequest()->getHeader("Cookie").empty() == false)
 	{
 		std::string cookie_data = client.getRequest()->getHeader("Cookie");
-		if (cookie_data.find("session_id=") != std::string::npos || cookie_data.find("SESSIONID=") != std::string::npos)
+		if (cookie_data.find("session_id=") != std::string::npos || cookie_data.find("SESSIONID=") != std::string::npos || cookie_data.find("session=") != std::string::npos)
 		{
 			std::string session_id;
 			if (cookie_data.find("session_id=") != std::string::npos)
 				session_id = cookie_data.substr(cookie_data.find("session_id=") + 10);
+			else if (cookie_data.find("session=") != std::string::npos)
+				session_id = cookie_data.substr(cookie_data.find("session=") + 8);
 			else
 				session_id = cookie_data.substr(cookie_data.find("SESSIONID=") + 9);
+				
 			if (session_id.find(';') != std::string::npos)
 				session_id = session_id.substr(0, session_id.find(';'));
 
-			//check if the session id is valid
+			//check if the session id is valid and stores value in storage
 			if (_session_store.find(session_id) != _session_store.end())
 			{
 				_session_store[session_id].last_access = get_time();
 				_session_store[session_id].data = cookie_data;
 			}
-			else
-			{
-				//if not, we create a new session id
-				std::string new_session_id = generateSessionId();
-				client.getResponse()->setSessionId(new_session_id);
-				addNewSession(new_session_id, cookie_data);
-			}
+		}
+		else
+		{
+			//if no session id, we create a new one
+			std::string new_session_id = generateSessionId();
+			client.getResponse()->setSessionId(new_session_id);
+			addNewSession(new_session_id, cookie_data);
 		}
 	}
 

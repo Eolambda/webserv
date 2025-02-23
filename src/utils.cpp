@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:20:32 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/22 22:38:41 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/23 12:44:11 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -246,28 +246,11 @@ std::string trim_spaces(std::string &s)
 	return ltrim(rtrim(s));
 }
 
-void close_all_sockets(std::vector<Server> &servers)
+void shutdown_server(std::vector<Server> &servers)
 {
+	//erase all servers
 	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it)
-	{
-		//remove all clients
-		for (std::vector<Client>::iterator it2 = it->clients.begin(); it2 != it->clients.end(); ++it2)
-		{
-			if (it2->getFd() > 0)
-			{
-				if (close (it2->getFd()) < 0)
-					throw std::runtime_error("Error: Could not close socket");
-				std::cout << BLUE << "Client " << it2->getFd() << " : disconnected" << RESET << std::endl;
-			}
-		}
-		
-		if (it->getSocket() > 0)
-		{
-			if (close(it->getSocket()) < 0)
-				throw std::runtime_error("Error: Could not close socket");
-			std::cout << BLUE << "Server " << it->getServerName() << " : shutdown" << RESET << std::endl;
-		}
-	}
+		it = servers.erase(it);
 }
 
 std::vector<std::string> parseMultipartFormData(const std::string& body, const std::string& bound) 

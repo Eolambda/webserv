@@ -46,6 +46,17 @@ Client::Client(const Client &client)
 
 Client::~Client()
 {
+	if (_fd > 0)
+		close(_fd);
+	if (_cgi_pipes[0] > 0)
+		close(_cgi_pipes[0]);
+	if (_cgi_pipes[1] > 0)
+		close(_cgi_pipes[1]);
+	if (_cgi_pipes_POST[0] > 0)
+		close(_cgi_pipes_POST[0]);
+	if (_cgi_pipes_POST[1] > 0)
+		close(_cgi_pipes_POST[1]);
+
 	delete _request;
 	delete _response;
 }

@@ -41,6 +41,7 @@ class Request
 		Client &getClient(void);
 		const std::string &getCGIsendBuffer(void) const;
 		const double &getCreationTime(void) const;
+		const std::string &getCookieBuffer(void) const;
 
 		void readData(std::string data);
 		void setRequestValidity(int value, bool is_complete);

@@ -37,6 +37,8 @@ Response::Response(const Response &response)
 	_server = response._server;
 	_cgi_buffer = response._cgi_buffer;
 	_is_cgi = response._is_cgi;
+	_is_post_upload = response._is_post_upload;
+	_sessionid = response._sessionid;
 }
 
 Response::~Response()
@@ -65,6 +67,8 @@ Response &Response::operator=(const Response &copy)
 	_server = copy._server;
 	_cgi_buffer = copy._cgi_buffer;
 	_is_cgi = copy._is_cgi;
+	_is_post_upload = copy._is_post_upload;
+	_sessionid = copy._sessionid;
 	return *this;
 }
 
