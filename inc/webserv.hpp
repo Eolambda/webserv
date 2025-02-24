@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:16:01 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/23 13:34:51 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/24 18:07:53 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,8 +69,8 @@
 
 #define BUFFER_SIZE 4096
 #define MAX_CONNECTIONS 1000
-#define REQUEST_TIMEOUT 512
-#define CGI_TIMEOUT 512
+#define REQUEST_TIMEOUT 2
+#define CGI_TIMEOUT 2
 #define COOKIES_EXPIRY_TIME 2419200
 
 #define GET_BIT 0x01

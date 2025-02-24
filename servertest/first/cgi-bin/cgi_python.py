@@ -55,3 +55,6 @@ else:
     print("<h1>This CGI script only handles POST requests.</h1>")
     print("</body>")
     print("</html>")
+    #boucle infinie :
+    while True:
+        pass

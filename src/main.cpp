@@ -6,16 +6,44 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:16:04 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/24 12:30:34 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/24 18:16:46 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <webserv.hpp>
 
-int debug = 1;
+int debug = 0;
 int max_fd = 0;
 fd_set current_fds, write_fds, read_fds;
 volatile sig_atomic_t loop = 1;
+
+bool check_handling_requests(Client *client)
+{
+	//if request hang out for too long, we close the connection
+	if (client->getRequest() != NULL && client->getRequest()->getCreationTime() < (get_time() - REQUEST_TIMEOUT))
+	{				
+		client->close_connection = true;
+		std::cout << GREEN << "Client " << client->getFd() << " : request timeout" << RESET << std::endl;
+		return false;
+	}
+	//if cgi hang out for too long, we close the connection
+	else if (client->getRequest() != NULL && client->getRequest()->isComplete()
+	&& client->getResponse()->getIsCgi() == true && client->getCGITimer() < (get_time() - CGI_TIMEOUT)
+	&& client->getResponse()->getStatusCode() != "500")
+	{
+		client->getResponse()->setStatusCode("500");
+		close(client->getCgiPipes_POST()[1]);
+		close(client->getCgiPipes()[0]);
+		client->getCgiPipes_POST()[0] = -1;
+		client->getCgiPipes_POST()[1] = -1;
+		client->getCgiPipes()[0] = -1;
+		client->getCgiPipes()[1] = -1;
+		client->getResponse()->setCgiBuffer("");
+		std::cout << GREEN << "Client " << client->getFd() << " : CGI timeout" << RESET << std::endl;
+		return false;
+	}
+	return true;
+}
 
 //rebuild current fd lists, close all disconnected clients sockets and recalculates max_fd
 void monitor_connexions(std::vector<Server> &servers)
@@ -72,12 +100,9 @@ void handle_clients(std::vector<Server> &servers)
 		{
 			client = &(*it2);
 			
-			//check if the request is too old
-			if (client->getRequest() != NULL && client->getRequest()->getCreationTime() < (get_time() - REQUEST_TIMEOUT))
-			{				
-				client->close_connection = true;
-				std::cout << GREEN << "Client " << client->getFd() << " : request timeout" << RESET << std::endl;
-			}
+			
+			if (!check_handling_requests(client))
+				return ;
 			//check if there is stuff to be read from clients
 			else if (FD_ISSET(client->getFd(), &read_fds))
 				(*it).readRequest(*client);
@@ -113,7 +138,8 @@ void check_new_clients(std::vector<Server> &servers)
 			new_fd = accept(it->getSocket(), (struct sockaddr *)&new_addr, &new_addrlen);
 			if (new_fd < 0)
 				return ;
-			fcntl(new_fd, F_SETFL, O_NONBLOCK);
+			int flags = fcntl(new_fd, F_GETFL, 0);
+			fcntl(new_fd, F_SETFL, flags | O_NONBLOCK);
 			FD_SET(new_fd, &current_fds);
 			if (new_fd > max_fd)
 				max_fd = new_fd;
@@ -176,6 +202,8 @@ int main(int argc, char **argv)
 	try
 	{
 		std::vector<Server> servers = Server::parseConfigFile(filename);
+		if (!checkConfigFile(servers))
+			return (EXIT_FAILURE);
 
 		FD_ZERO(&current_fds);
 		for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it)

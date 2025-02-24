@@ -60,10 +60,6 @@ std::vector<Server> Server::parseConfigFile(const std::string &filename)
 	}
 
 	infile.close();
-	
-
-	std::cout << BLUE << "Config file parsed successfully" << std::endl
-			  << RESET;
 
 	return (servers);
 }
@@ -144,47 +140,52 @@ bool checkConfigFile(std::vector<Server> &servers)
 	{
 		if (it->getHostname().empty() || !checkIPAddrFormat(it->getHostname()))
 		{
-			std::cerr << "Error: missing hostaddr in server block or improper format" << std::endl;
+			std::cerr << RED << "Error: missing hostaddr in server block or improper format" << RESET << std::endl;
 			return false;
 		}
 		else
 			hostname.push_back(it->getHostname());
 		if (it->getPort() <= 1024 || it->getPort() > 65535)
 		{
-			std::cerr << "Error: port must be a number comprised between 1024 and 65535" << std::endl;
+			std::cerr << RED << "Error: port must be a number comprised between 1024 and 65535" << RESET << std::endl;
 			return false;
 		}
 		else
 			ports.push_back(it->getPort());
 		if (it->getServerName().empty())
 		{
-			std::cout << "Warning: missing server_name in server block" << std::endl;
-			std::cout << "Switching to default server_name" << std::endl;
+			std::cout << YELLOW << "Warning: missing server_name in server block" << RESET << std::endl;
+			std::cout << YELLOW << "Switching to default server_name" << RESET << std::endl;
 			it->setServerName("default");
 		}
 		if (it->getRoot().empty())
 		{
-			std::cout << "Warning: missing root_directory in server block" << std::endl;
-			std::cout << "Switching to default root_directory" << std::endl;
+			std::cout << YELLOW << "Warning: missing root_directory in server block" << RESET << std::endl;
+			std::cout << YELLOW << "Switching to default root_directory" << RESET << std::endl;
 			it->setRoot("/");
 		}
 		if (it->getDefaultFile().empty())
 		{
-			std::cout << "Warning: missing entry_file in server block" << std::endl;
-			std::cout << "Switching to default entry_file" << std::endl;
+			std::cout << YELLOW << "Warning: missing entry_file in server block" << RESET << std::endl;
+			std::cout << YELLOW << "Switching to default entry_file" << RESET << std::endl;
 			it->setDefaultFile("index.html");
 		}
 		if (it->getCgiBin().empty())
 		{
-			std::cout << "Warning: missing cgi-bin in server block" << std::endl;
-			std::cout << "Switching to default cgi-bin" << std::endl;
+			std::cout << YELLOW << "Warning: missing cgi-bin in server block" << RESET << std::endl;
+			std::cout << YELLOW << "Switching to default cgi-bin" << RESET << std::endl;
 			it->setCgiBin("/cgi-bin/");
 		}
 		if (it->getUploads().empty())
 		{
-			std::cout << "Warning: missing uploads in server block" << std::endl;
-			std::cout << "Switching to default uploads" << std::endl;
+			std::cout << YELLOW << "Warning: missing uploads in server block" << RESET << std::endl;
+			std::cout << YELLOW << "Switching to default uploads" << RESET << std::endl;
 			it->setUploads("/uploads/");
+		}
+		if (it->getMaxBodySize() <= 0 || it->getMaxBodySize() > INT32_MAX)
+		{
+			std::cerr << RED << "Error: max_body_size must be a number comprised between 1 and " << INT32_MAX << RESET << std::endl;
+			return false;
 		}
 	}
 

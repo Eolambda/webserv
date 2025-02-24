@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:26:37 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/24 11:54:08 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/24 18:11:25 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,6 +92,10 @@ void Server::initSocket(void)
 	int opt = 1;
 	if (setsockopt(_sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
 		throw std::runtime_error("Error: Could not set socket options");
+	#ifdef SO_REUSEPORT  // Some systems do not support SO_REUSEPORT
+	if (setsockopt(_sockfd, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)) < 0)
+		throw std::runtime_error("Error: Could not set SO_REUSEPORT");
+	#endif
 
 	if (fcntl(_sockfd, F_SETFL, fcntl(_sockfd, F_GETFL, 0) | O_NONBLOCK) < 0)
 		throw std::runtime_error("Error: Could not set socket options");
@@ -104,7 +108,7 @@ void Server::initSocket(void)
 	if (bind(_sockfd, (struct sockaddr *)&_addr, _addr_len) < 0)
 		throw std::runtime_error("Error: Could not bind socket");
 
-	if (listen(_sockfd, 10) < 0)
+	if (listen(_sockfd, 256) < 0)
 		throw std::runtime_error("Error: Could not listen to socket");
 }
 

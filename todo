@@ -1,5 +1,9 @@
   todo sujet correct et vrac :
 
-- monitorer fd des cgi avec select
-- tester siege
+
+- run the eval sheet tests
+- tester cgi avec select monitoring
+- tester cgi boucle infinie
+  - should expire
+- tester double servers
 - no leaks check
