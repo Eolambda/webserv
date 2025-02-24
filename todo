@@ -1,10 +1,5 @@
   todo sujet correct et vrac :
 
 - monitorer fd des cgi avec select
-- add more check config parsing (ports etc)
-  - same port same addr multiple times should not work
-- pour close client fd et copy client, voir si y a pas meilleure solution 
-  - on dirait que chaque client cree est copie a un moment 
-  - pdt la copie il est delete et recree 
-  - voir si on peut eviter ca (surement un erase dans create new client ou autre)
+- tester siege
 - no leaks check

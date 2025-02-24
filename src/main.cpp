@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:16:04 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/23 13:30:23 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/24 12:30:34 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,13 +17,15 @@ int max_fd = 0;
 fd_set current_fds, write_fds, read_fds;
 volatile sig_atomic_t loop = 1;
 
-//rebuild client lists, close all disconnected clients sockets and recalculates max_fd
-void remove_clients(std::vector<Server> &servers)
+//rebuild current fd lists, close all disconnected clients sockets and recalculates max_fd
+void monitor_connexions(std::vector<Server> &servers)
 {
+	FD_ZERO(&current_fds);
 	max_fd = 0;
 
 	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it)
 	{
+		FD_SET(it->getSocket(), &current_fds);
 		if (it->getSocket() >= max_fd)
 			max_fd = it->getSocket();
 			
@@ -31,15 +33,27 @@ void remove_clients(std::vector<Server> &servers)
 		{
 			if (it2->close_connection)
 			{
-				FD_CLR(it2->getFd(), &current_fds);
 				it2->closeSockets();
 				std::cout << GREEN << "Client " << it2->getFd() << " : disconnected" << RESET << std::endl;				
 				it2 = it->clients.erase(it2);
 			}
 			else
 			{
+				FD_SET(it2->getFd(), &current_fds);
 				if (it2->getFd() >= max_fd)
 					max_fd = it2->getFd();
+				if (it2->getCgiPipes()[0] != -1)
+				{
+					FD_SET(it2->getCgiPipes()[0], &current_fds);
+					if (it2->getCgiPipes()[0] >= max_fd)
+						max_fd = it2->getCgiPipes()[0];
+				}
+				if (it2->getCgiPipes_POST()[1] != -1)
+				{
+					FD_SET(it2->getCgiPipes_POST()[1], &current_fds);
+					if (it2->getCgiPipes_POST()[1] >= max_fd)
+						max_fd = it2->getCgiPipes_POST()[1];
+				}
 				++it2;
 			}
 		}
@@ -57,20 +71,27 @@ void handle_clients(std::vector<Server> &servers)
 		for (std::vector<Client>::iterator it2 = it->clients.begin(); it2 != it->clients.end(); ++it2)
 		{
 			client = &(*it2);
-
+			
+			//check if the request is too old
 			if (client->getRequest() != NULL && client->getRequest()->getCreationTime() < (get_time() - REQUEST_TIMEOUT))
 			{				
 				client->close_connection = true;
 				std::cout << GREEN << "Client " << client->getFd() << " : request timeout" << RESET << std::endl;
 			}
+			//check if there is stuff to be read from clients
 			else if (FD_ISSET(client->getFd(), &read_fds))
 				(*it).readRequest(*client);
+			//check if there is a cgi to write to the cgi_process
 			else if (client->getRequest()->isComplete() && client->getResponse()->getIsCgi() == true
-			&& client->getCgiPipes_POST()[1] != -1 && client->getRequest()->getMethod() == "POST")
+			&& client->getCgiPipes_POST()[1] != -1 && client->getRequest()->getMethod() == "POST"
+			&& FD_ISSET(client->getCgiPipes_POST()[1], &write_fds))
 				(*it).sendCGI(*client);
+			//check if there is cgi data to read from the cgi_process
 			else if (client->getRequest()->isComplete() && client->getResponse()->getIsCgi() == true
-			&& client->getCgiPipes()[0] != -1 && client->getCgiPipes_POST()[1] == -1)
+			&& client->getCgiPipes()[0] != -1 && client->getCgiPipes_POST()[1] == -1
+			&& FD_ISSET(client->getCgiPipes()[0], &read_fds))
 				(*it).receiveCGI(*client);
+			//check if there is a response to send to the client
 			else if (FD_ISSET(client->getFd(), &write_fds) && client->getRequest()->isComplete()
 			&& client->getCgiPipes()[0] == -1)
 				(*it).sendResponse(*client);
@@ -128,7 +149,7 @@ void loop_handle(std::vector<Server> &servers)
 
 	check_new_clients(servers);	
 	handle_clients(servers);
-	remove_clients(servers);
+	monitor_connexions(servers);
 }
 
 int main(int argc, char **argv)
