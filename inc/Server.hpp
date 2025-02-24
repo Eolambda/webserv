@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:24:48 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/22 22:21:49 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/24 11:55:30 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ public:
 	~Server();
 	Server &operator=(const Server &copy);
 	bool 	operator==(const Server &copy) const;
+	
 	static std::vector<Server> parseConfigFile(const std::string &filename);
 
 	void addLocation(void);

@@ -1,9 +1,5 @@
-  ---
-
   todo sujet correct et vrac :
 
-- upload marche pas avec png
-  - segfault
 - monitorer fd des cgi avec select
 - add more check config parsing (ports etc)
   - same port same addr multiple times should not work

@@ -16,6 +16,8 @@ std::string getCurrentDate();
 void parseLocationBlock(const std::string &key, const std::string &value, Server &current_server);
 void parseServerBlock(const std::string &key, const std::string &value, Server &current_server);
 void parseLine(const std::string &line, Server &current_server, t_parser_block &parser_position);
+bool checkConfigFile(std::vector<Server> &servers);
+bool checkIPAddrFormat(std::string addr);
 bool checkPathExists(const std::string &path);
 bool isDirectory(const std::string &path);
 std::string decodeURI(const std::string &uri);

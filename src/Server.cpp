@@ -6,7 +6,7 @@
 /*   By: vincentfresnais <vincentfresnais@studen    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 15:26:37 by wouhliss          #+#    #+#             */
-/*   Updated: 2025/02/23 23:30:25 by vincentfres      ###   ########.fr       */
+/*   Updated: 2025/02/24 11:54:08 by vincentfres      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,71 +108,6 @@ void Server::initSocket(void)
 		throw std::runtime_error("Error: Could not listen to socket");
 }
 
-std::vector<Server> Server::parseConfigFile(const std::string &filename)
-{
-	std::vector<Server> servers;
-	std::ifstream infile(filename.c_str());
-	std::string line;
-	t_parser_block parser_position;
-
-	std::cout << BLUE << "Parsing config file: " << filename << std::endl
-			  << RESET;
-
-	if (!infile.is_open())
-		throw std::runtime_error("Error: could not open file");
-
-	parser_position.server = false;
-	parser_position.error = false;
-	parser_position.location = false;
-
-	while (std::getline(infile, line))
-	{
-		line = trim_spaces(line);
-
-		if (line.empty() || line[0] == '#')
-			continue;
-
-		if (line == "server:")
-		{
-			parser_position.server = true;
-			parser_position.error = false;
-			parser_position.location = false;
-			servers.push_back(Server());
-			continue;
-		}
-
-		if (line == "error_pages:")
-		{
-			if (parser_position.server == false)
-				throw std::runtime_error("Error: error block outside of server block");
-			parser_position.location = false;
-			parser_position.error = true;
-			continue;
-		}
-
-		if (line == "location:")
-		{
-			if (parser_position.server == false)
-				throw std::runtime_error("Error: location block outside of server block");
-			parser_position.location = true;
-			parser_position.error = false;
-			servers.back().addLocation();
-			
-			continue;
-		}
-
-		if (parser_position.server == false)
-			throw std::runtime_error("Error: block outside of server block");
-		parseLine(line, servers.back(), parser_position);
-	}
-
-	infile.close();
-
-	std::cout << BLUE << "Config file parsed successfully" << std::endl
-			  << RESET;
-
-	return (servers);
-}
 
 //Other functions
 
