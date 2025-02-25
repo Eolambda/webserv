@@ -18,6 +18,8 @@ class Client
 		~Client();
 		Client &operator=(const Client &copy);
 		bool 	operator==(const Client &copy) const;
+		void printRequest();
+		void printResponse();
 
 		void setFd(const int fd);
 		void setServer(Server *server);

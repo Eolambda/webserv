@@ -297,30 +297,30 @@ void Response::resetResponse()
 
 void Response::prepareResponse()
 {
+
 	if (_status_code.empty())
 		_status_code = "500";
-
-	if (!_body.empty() && _body.size() > _server->getMaxBodySize())
+	if (!isAnErrorResponse(_status_code) && !_body.empty() && _body.size() > _server->getMaxBodySize())
 		_status_code = "413";
-
 	if (isAnErrorResponse(_status_code))
 		defineResponseErrorPage();
-
 	defineStatusMessage(_status_code);
 
 	//build status line : status-line = HTTP-version SP status-code SP [ reason-phrase ]
 	_buffer = "HTTP/1.1 " + _status_code + " " + _status_message + CRLF;
 
+	//build mandatory headers
+	defineContentType();
+	defineResponseHeaders();
+	_buffer += _headers;
+
+
+	//build rest of the message
 	if (_is_cgi == true && (_status_code == "200" || _status_code == "201"))
 		_buffer += _cgi_buffer;
 	else 
-	{
-		defineContentType();
-		defineResponseHeaders();
-		_buffer += _headers;
 		if (_status_code != "301" && _status_code != "302" && _status_code != "303" && _body.empty() == false)
 			_buffer += _body;
-	}
 }
 
 void Response::defineResponseErrorPage()
@@ -534,19 +534,24 @@ void Response::defineResponseHeaders()
 	_headers += "Server: " + _server->getServerName() + CRLF;
 	_headers += "Date: " + getCurrentDate() + CRLF;
 
-	if (_status_code == "301" || _status_code == "302" || _status_code == "303")
+	if (_is_cgi == false)
 	{
-		_headers += "Location: " + _redirection + CRLF;
-		_headers += std::string("Content-Length: 0") + CRLF;
+		if (_status_code == "301" || _status_code == "302" || _status_code == "303")
+		{
+			_headers += "Location: " + _redirection + CRLF;
+			_headers += std::string("Content-Length: 0") + CRLF;
+		}
+		else
+		{
+			_headers += "Content-Type: " + _content_type + CRLF;
+			_headers += "Content-Length: " + to_string(_body.size()) + CRLF;
+		}
 	}
-	else
-	{
-		_headers += "Content-Type: " + _content_type + CRLF;
-		_headers += "Content-Length: " + to_string(_body.size()) + CRLF;
-		//_headers += std::string("Connection: close") + CRLF;
-	}
+	
 	if (_sessionid.empty() == false)
 		_headers += "Set-Cookie: session=" + _sessionid + "; Path=/; HttpOnly" + CRLF;
+	if (isAnErrorResponse(_status_code))
+		_headers += std::string("Connection: close") + CRLF;
 	_headers += CRLF;
 }
 

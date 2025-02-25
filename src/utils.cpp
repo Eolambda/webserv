@@ -192,8 +192,8 @@ bool isAnErrorResponse(const std::string error_number)
 	
 	if (error_code == 0 
 		|| (error_code >= 200 && error_code <= 204)
-		|| (error_code >= 301 && error_code <= 303)
-		|| error_code == 401)
+		|| (error_code >= 301 && error_code <= 303))
+		//|| error_code == 401)
 		return false;
 	return true;
 }

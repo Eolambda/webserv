@@ -164,3 +164,46 @@ void Client::resetMessages()
 		close(_cgi_pipes_POST[1]);
 	_cgi_pipes_POST[1] = -1;
 }
+
+void Client::printRequest()
+{
+	Client &client = *this;
+
+	std::cout << CYAN << std::endl << RESET;
+	std::cout << CYAN << "--- Request received by client " << client.getFd() << " ---" << std::endl << RESET;;
+	std::cout << CYAN << "Full buffer : " << client.getRequest()->getBuffer() << std::endl << RESET;;
+	std::cout << CYAN << "Method : " << client.getRequest()->getMethod() << std::endl << RESET;;
+	std::cout << CYAN << "URI : " << client.getRequest()->getUri() << std::endl << RESET;;
+	std::cout << CYAN << "HTTP version : " << client.getRequest()->getHttpVersion() << std::endl << RESET;;
+	std::cout << CYAN << "Body : " << client.getRequest()->getBody() << std::endl << RESET;;
+	std::cout << CYAN << "Headers : " << std::endl << RESET;;
+	for (std::map<std::string, std::string>::iterator it = client.getRequest()->getHeaders().begin(); it != client.getRequest()->getHeaders().end(); ++it)
+		std::cout << CYAN << it->first << ": " << it->second << std::endl << RESET;;
+	std::cout << CYAN << "Request validity : " << client.getRequest()->getRequestValidity() << std::endl << RESET;;
+	std::cout << CYAN << "--- End of request, processing it ---" << std::endl << RESET;;
+	std::cout << CYAN << std::endl << RESET;
+}
+
+void Client::printResponse()
+{
+	Client &client = *this;
+	
+	std::cout << PURPLE << std::endl;
+	std::cout << PURPLE << "--- Response generated for client " << client.getFd() << " ---" << std::endl << RESET;
+	std::cout << PURPLE << "Status code : " << client.getResponse()->getStatusCode() << std::endl << RESET;
+	std::cout << PURPLE << "Status message : " << client.getResponse()->getStatusMessage() << std::endl << RESET;
+	std::cout << PURPLE << "Headers : " << std::endl << RESET;
+	std::cout << PURPLE << client.getResponse()->getHeaders() << std::endl << RESET;
+	std::cout << PURPLE << "Body : " << std::endl << RESET;
+	std::cout << PURPLE << client.getResponse()->getBody() << std::endl << RESET;
+	std::cout << PURPLE << "Full path : " << client.getResponse()->getFullPath() << std::endl << RESET;
+	std::cout << PURPLE << "URI attributes : " << client.getResponse()->getURIAttributes() << std::endl << RESET;
+	std::cout << PURPLE << "Redirection : " << client.getResponse()->getRedirection() << std::endl << RESET;
+	std::cout << PURPLE << "Content type : " << client.getResponse()->getContentType() << std::endl << RESET;
+	std::cout << PURPLE << "HTTP version : " << client.getResponse()->getHTTPVersion() << std::endl << RESET;
+	std::cout << PURPLE << "Is directory : " << client.getResponse()->getIsDirectory() << std::endl << RESET;
+	std::cout << PURPLE << "Is CGI : " << client.getResponse()->getIsCgi() << std::endl << RESET;
+	std::cout << PURPLE << "CGI Buffer : " << client.getResponse()->getCgiBuffer() << std::endl << RESET;
+	std::cout << PURPLE << "--- End of response ---" << std::endl << RESET;
+	std::cout << PURPLE << std::endl << RESET;
+}

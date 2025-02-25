@@ -22,17 +22,17 @@ bool check_request_timeouts(Client *client)
 	//if client or request hang out for too long, we close the connection
 	if (client->getRequest() != NULL && !client->getRequest()->isComplete()
 	&& client->getRequest()->getCreationTime() < (get_time() - REQUEST_TIMEOUT))
-	{				
+	{
 		client->close_connection = true;
-		std::cout << GREEN << "Client " << client->getFd() << " : connexion timeout" << RESET << std::endl;
+		std::cout << GREEN << "Client " << client->getFd() << " : client timeout" << RESET << std::endl;
 		return false;
 	}
 	//if cgi hang out for too long, we close the connection
 	else if (client->getRequest() != NULL && client->getRequest()->isComplete()
 	&& client->getResponse()->getIsCgi() == true && client->getCGITimer() < (get_time() - CGI_TIMEOUT)
-	&& client->getResponse()->getStatusCode() != "500")
+	&& client->getResponse()->getStatusCode() != "408")
 	{
-		client->getResponse()->setStatusCode("500");
+		client->getResponse()->setStatusCode("408");
 		close(client->getCgiPipes_POST()[1]);
 		close(client->getCgiPipes()[0]);
 		client->getCgiPipes_POST()[0] = -1;
@@ -105,21 +105,16 @@ void handle_clients(std::vector<Server> &servers)
 			if (!check_request_timeouts(client))
 				return ;
 			//check if there is stuff to be read from clients
-			else if (FD_ISSET(client->getFd(), &read_fds))
+			else if (!client->getRequest()->isComplete() && FD_ISSET(client->getFd(), &read_fds))
 				(*it).readRequest(*client);
 			//check if there is a cgi to write to the cgi_process
-			else if (client->getRequest()->isComplete() && client->getResponse()->getIsCgi() == true
-			&& client->getCgiPipes_POST()[1] != -1 && client->getRequest()->getMethod() == "POST"
-			&& FD_ISSET(client->getCgiPipes_POST()[1], &write_fds))
+			else if (client->getRequest()->isComplete() && client->getResponse()->getIsCgi() == true && client->getCgiPipes_POST()[1] != -1 && client->getRequest()->getMethod() == "POST" && FD_ISSET(client->getCgiPipes_POST()[1], &write_fds))
 				(*it).sendCGI(*client);
 			//check if there is cgi data to read from the cgi_process
-			else if (client->getRequest()->isComplete() && client->getResponse()->getIsCgi() == true
-			&& client->getCgiPipes()[0] != -1 && client->getCgiPipes_POST()[1] == -1
-			&& FD_ISSET(client->getCgiPipes()[0], &read_fds))
+			else if (client->getRequest()->isComplete() && client->getResponse()->getIsCgi() == true && client->getCgiPipes()[0] != -1 && client->getCgiPipes_POST()[1] == -1 && FD_ISSET(client->getCgiPipes()[0], &read_fds))
 				(*it).receiveCGI(*client);
 			//check if there is a response to send to the client
-			else if (FD_ISSET(client->getFd(), &write_fds) && client->getRequest()->isComplete()
-			&& client->getCgiPipes()[0] == -1)
+			else if (FD_ISSET(client->getFd(), &write_fds) && client->getRequest()->isComplete() && client->getCgiPipes()[0] == -1)
 				(*it).sendResponse(*client);
 		}
 	}

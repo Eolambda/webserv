@@ -1,13 +1,13 @@
   todo sujet correct et vrac :
 
-- run the eval sheet tests
+
+- pouvoir envoyer les headers d'erreur pour les cgi aussi
 - tester cgi avec select monitoring
   - simple programmes
   - un simple write cgi 
   - un simple read cgi
+- run the eval sheet tests
 - tester double servers
-- no leaks check
-  - voir que memoire saccumule pas
 
 
 ----
