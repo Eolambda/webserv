@@ -178,10 +178,12 @@ void Response::HandlePOST_multiform(std::string body, std::string content_type)
 		if (!filename.empty())
 		{
 			std::string absolute_path = _server->getRoot();
-			if (absolute_path.back() != '/' && _server->getUploads().front() != '/')
+			if (!absolute_path.empty() && absolute_path[absolute_path.size() - 1] != '/' &&
+				!_server->getUploads().empty() && _server->getUploads()[0] != '/')
 				absolute_path += "/";
-			else if (absolute_path.back() == '/' && _server->getUploads().front() == '/')
-				absolute_path.pop_back();
+			else if (!absolute_path.empty() && absolute_path[absolute_path.size() - 1] == '/' &&
+				!_server->getUploads().empty() && _server->getUploads()[0] == '/')
+				absolute_path.erase(absolute_path.size() - 1);
 			absolute_path += _server->getUploads();
 			if (checkPathExists(absolute_path + filename))
 			{
@@ -195,10 +197,12 @@ void Response::HandlePOST_multiform(std::string body, std::string content_type)
 
 	//check if uri is matching the uploads parameter of the server
 	std::string temp_uri_attributes = extractPathFromURI(_request->getUri());
-	if (temp_uri_attributes.back() != '/' && _server->getUploads().back() == '/')
+	if (!temp_uri_attributes.empty() && temp_uri_attributes[temp_uri_attributes.size() - 1] != '/' &&
+    !_server->getUploads().empty() && _server->getUploads()[_server->getUploads().size() - 1] == '/')
 		temp_uri_attributes += "/";
-	else if (temp_uri_attributes.back() == '/' && _server->getUploads().back() != '/')
-		temp_uri_attributes.pop_back();
+	else if (!temp_uri_attributes.empty() && temp_uri_attributes[temp_uri_attributes.size() - 1] == '/' &&
+		!_server->getUploads().empty() && _server->getUploads()[_server->getUploads().size() - 1] != '/')
+		temp_uri_attributes.erase(temp_uri_attributes.size() - 1);
 
 	if (temp_uri_attributes == _server->getUploads())
 	{

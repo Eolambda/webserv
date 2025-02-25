@@ -44,13 +44,14 @@ void handle_cgi(Client *client)
 
 	//if root path ends with a / and program path starts with a /, we remove the / from root path
 	//if root path does not end with a / and program path does not start with one neither, we add a / to root path
-	if (root.back() == '/' && program_path.front() == '/')
-		root.pop_back();
-	else if (root.back() != '/' && program_path.front() != '/')
+	if (!root.empty() && root[root.size() - 1] == '/' && !program_path.empty() && program_path[0] == '/')
+		root.erase(root.size() - 1); // Removes the last character
+	else if (!root.empty() && root[root.size() - 1] != '/' && !program_path.empty() && program_path[0] != '/')
 		root += "/";
 	program_path = root + program_path;
-	if (program_path.back() != '/')
+	if (!program_path.empty() && program_path[program_path.size() - 1] != '/')
 		program_path += "/";
+
 	program_path += server->getCgiExtensions()[extension];
 
 	std::vector<std::string> command(2);
@@ -169,7 +170,7 @@ std::vector<std::string> generate_cgi_env(Client *client, std::string command, s
 	value = "REMOTE_ADDR=";
 	value += inet_ntoa(client->getAddr().sin_addr);
 	env.push_back(value);
-	env.push_back("REMOTE_PORT=" + std::to_string(ntohs(client->getAddr().sin_port)));
+	env.push_back("REMOTE_PORT=" + to_string(ntohs(client->getAddr().sin_port)));
 	//REMOTE_HOST
 	//REMOTE_USER
 	//REMOTE_IDENT
@@ -177,7 +178,7 @@ std::vector<std::string> generate_cgi_env(Client *client, std::string command, s
 	env.push_back("REQUEST_URI=" + client->getRequest()->getUri());
 	env.push_back("SCRIPT_NAME=" + command);
 	env.push_back("SERVER_NAME=" + client->getServer()->getHostname());
-	env.push_back("SERVER_PORT=" + std::to_string(client->getServer()->getPort()));
+	env.push_back("SERVER_PORT=" + to_string(client->getServer()->getPort()));
 	env.push_back("SERVER_PROTOCOL=HTTP/1.1");
 	env.push_back("SERVER_SOFTWARE=Webserv v0.0005");
 	env.push_back("REDIRECT_STATUS=200");

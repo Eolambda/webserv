@@ -10,7 +10,9 @@ typedef struct ParserBlock
 	bool location;
 } t_parser_block;
 
+std::string to_string(int num);
 std::string toBinaryString(uint8_t value);
+bool is_digits(const std::string& str);
 bool check_extension(const std::string &str);
 std::string getCurrentDate();
 void parseLocationBlock(const std::string &key, const std::string &value, Server &current_server);

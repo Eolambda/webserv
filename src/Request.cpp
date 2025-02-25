@@ -321,7 +321,7 @@ bool Request::checkBodyContentLength(std::string data)
 	if (_headers.find("Content-Length") == _headers.end())
 		return false;
 
-	size_t content_length = std::stoi(_headers["Content-Length"]);
+	size_t content_length = static_cast<size_t>(atoi(_headers["Content-Length"].c_str()));
 
 	if (content_length == 0 || content_length > static_cast<size_t>(_max_body_size))
 		return false;
@@ -338,7 +338,7 @@ bool Request::parseBody(std::string data)
 	if (_headers.find("Content-Length") == _headers.end())
 		return true;
 
-	size_t content_length = std::stoi(_headers["Content-Length"]);
+	size_t content_length = static_cast<size_t>(atoi(_headers["Content-Length"].c_str()));
 
 	_body += data;
 

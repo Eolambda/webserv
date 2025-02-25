@@ -25,7 +25,7 @@ Server::~Server()
 {
 	//clean session store
 	for (std::map<std::string, struct SessionData>::iterator it = _session_store.begin(); it != _session_store.end();)
-		it = _session_store.erase(it);
+		_session_store.erase(it++);
 		
 	//clean clients
 	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end();)
@@ -317,7 +317,7 @@ void Server::processRequest(Client &client)
 	//check if the request is valid
 	if (client.getRequest()->getRequestValidity() != 0)
 	{
-		std::string error_number = std::to_string(client.getRequest()->getRequestValidity());
+		std::string error_number = to_string(client.getRequest()->getRequestValidity());
 		client.getResponse()->setStatusCode(error_number);
 		return;
 	}
@@ -325,9 +325,11 @@ void Server::processRequest(Client &client)
 	//get full path
 	std::string root_path = this->getRoot();
 	std::string extracted = extractPathFromURI(client.getRequest()->getUri());
-	if (root_path.back() == '/' && extracted.front() == '/')
+	if (!root_path.empty() && !extracted.empty()
+		&& root_path[root_path.size() - 1] == '/' && extracted[0] == '/')
 		extracted.erase(extracted.begin());
-	else if (root_path.back() != '/' && extracted.front() != '/')
+	else if (!root_path.empty() && !extracted.empty() 
+		&& root_path[root_path.size() - 1] != '/' && extracted[0] != '/')
 		extracted = "/" + extracted;
 	std::string full_path  = root_path + extracted;
 
@@ -344,10 +346,14 @@ void Server::processRequest(Client &client)
 		pos = location_path.find_last_of('/');
 			if (pos != std::string::npos)
 				location_path = location_path.substr(0, pos + 1);
-		if ((*it).getPath().back() == '/' && location_path.back() != '/')
+		if (!(*it).getPath().empty() && !location_path.empty() &&
+		(*it).getPath()[(*it).getPath().size() - 1] == '/' &&
+		location_path[location_path.size() - 1] != '/')
 			location_path += "/";
-		else if ((*it).getPath().back() != '/' && location_path.back() == '/')
-			location_path.pop_back();
+		else if (!(*it).getPath().empty() && !location_path.empty() &&
+		(*it).getPath()[(*it).getPath().size() - 1] != '/' &&
+		location_path[location_path.size() - 1] == '/')
+			location_path.erase(location_path.size() - 1);
 
 
 		//a location block exists, we handle it

@@ -12,6 +12,13 @@
 
 #include <utils.hpp>
 
+std::string to_string(int num)
+{
+    std::stringstream ss;
+    ss << num;
+    return ss.str();
+}
+
 std::string toBinaryString(uint8_t value) {
     std::string result;
     // Loop from the most significant bit (7) to the least significant (0)
@@ -19,6 +26,17 @@ std::string toBinaryString(uint8_t value) {
         result.push_back((value & (1 << i)) ? '1' : '0');
     }
     return result;
+}
+
+bool is_digits(const std::string& str)
+{
+    // Check if each character in the string is a digit
+    for (size_t i = 0; i < str.length(); ++i) {
+        if (!isdigit(str[i])) {
+            return false; // Return false if any character is not a digit
+        }
+    }
+    return true; // Return true if all characters are digits
 }
 
 double get_time(void)
@@ -74,8 +92,10 @@ std::string decodeURI(const std::string &uri)
 	{
 		if (uri[i] == '%')
 		{
-			decoded += static_cast<char>(std::stoi(uri.substr(i + 1, 2), 0, 16));
-			i += 3;
+            // Convert the 2-character hex substring to an integer
+            long value = std::strtol(uri.substr(i + 1, 2).c_str(), NULL, 16);
+            decoded += static_cast<char>(value);
+            i += 3;
 		}
 		else if (uri[i] == '+')
 		{
@@ -312,7 +332,7 @@ void clean_cookies(std::vector<Server> &servers)
 		for (std::map<std::string, struct SessionData>::iterator it2 = session_store.begin(); it2 != session_store.end();)
 		{
 			if (it2->second.last_access + COOKIES_EXPIRY_TIME < time(NULL))
-				it2 = session_store.erase(it2);
+				session_store.erase(it2++);
 			else
 				++it2;
 		}

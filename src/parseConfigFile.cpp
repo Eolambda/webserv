@@ -182,9 +182,9 @@ bool checkConfigFile(std::vector<Server> &servers)
 			std::cout << YELLOW << "Switching to default uploads" << RESET << std::endl;
 			it->setUploads("/uploads/");
 		}
-		if (it->getMaxBodySize() <= 0 || it->getMaxBodySize() > INT32_MAX)
+		if (it->getMaxBodySize() <= 0 || it->getMaxBodySize() > INT_MAX)
 		{
-			std::cerr << RED << "Error: max_body_size must be a number comprised between 1 and " << INT32_MAX << RESET << std::endl;
+			std::cerr << RED << "Error: max_body_size must be a number comprised between 1 and " << INT_MAX << RESET << std::endl;
 			return false;
 		}
 	}

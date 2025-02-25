@@ -1,6 +1,21 @@
   todo sujet correct et vrac :
 
-
+- rework for linux
+  - changes : 
+    - cgi file : 
+      - push back cgi
+      - to string function
+      - pop_back
+    - method handlers :
+      - pareil, les front / back / pop_back
+    - parseConfigFile
+      - INT32_MAX
+    - Request
+      - stoi become atoi now
+    - Reponse
+      - stoi to atoi
+    - Server
+      - 28 : session erase (it++)
 - run the eval sheet tests
 - tester cgi avec select monitoring
 - tester cgi boucle infinie

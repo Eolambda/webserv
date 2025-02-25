@@ -333,13 +333,13 @@ void Response::prepareResponse()
 void Response::defineResponseErrorPage()
 {
 	//if error page is defined, fetch it
-	std::string error_page = _server->getErrorPage(std::stoi(_status_code));
+	std::string error_page = _server->getErrorPage(atoi(_status_code.c_str()));
 	if (error_page.empty() == false)
 	{
 		//reconstitue full path
-		if (_full_path.back() == '/' && error_page.front() == '/')
+		if (!_full_path.empty() && _full_path[_full_path.length() - 1] == '/' && error_page[0] == '/')
 			error_page.erase(error_page.begin());
-		else if (_full_path.back() != '/' && error_page.front() != '/')
+		else if (!_full_path.empty() && _full_path[_full_path.length() - 1] != '/' && error_page[0] != '/')
 			error_page = "/" + error_page;
 		_full_path = _server->getRoot() + error_page;
 
@@ -481,12 +481,12 @@ void Response::defineStatusMessage(const std::string status_number)
 {
 	int status_code = 0;
 
-	try {
-		status_code = std::stoi(status_number);
-	}
-	catch (std::exception &e)
+	std::stringstream ss(status_number);
+	ss >> status_code;
+
+	if (!is_digits(status_number) || status_code < 0 || status_code > 999)
 	{
-		_status_message = "Unknown Status";
+		_status_message = "Unknown code";
 		return;
 	}
 
@@ -549,7 +549,7 @@ void Response::defineResponseHeaders()
 	else
 	{
 		_headers += "Content-Type: " + _content_type + CRLF;
-		_headers += "Content-Length: " + std::to_string(_body.size()) + CRLF;
+		_headers += "Content-Length: " + to_string(_body.size()) + CRLF;
 		//_headers += std::string("Connection: close") + CRLF;
 	}
 	if (_sessionid.empty() == false)
