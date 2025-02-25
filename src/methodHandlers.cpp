@@ -103,14 +103,7 @@ void Response::handlePOST(Client *client)
 void Response::HandlePOST_application(std::string body)
 {
 	std::map<std::string, std::string> params = parsePOSTBodyEncoded(body);
-
-		//debug
-		std::map<std::string, std::string>::iterator it;
-        for (it = params.begin(); it != params.end(); ++it) {
-            std::cout << "Key: " << it->first << " - Value: " << it->second << std::endl;
-        }
-
-
+	
 	if (params.empty())
 	{
 		_status_code = "400";

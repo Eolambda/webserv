@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- The <meta> tags provide metadata about the document -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The title of the page -->
+    <title>My Static Website</title>
+    <!-- A simple internal CSS block for basic styling -->
+    <style>
+      /* Basic reset and styling */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background-color: #f5f5f5;
+        color: #333;
+      }
+      header, nav, main, footer {
+        background: #fff;
+        padding: 15px;
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+      }
+      header h1 {
+        margin: 0;
+      }
+      /* Navigation styling */
+      nav ul {
+        list-style: none;
+        padding: 0;
+      }
+      nav li {
+        display: inline-block;
+        margin-right: 15px;
+      }
+      nav a {
+        text-decoration: none;
+        color: #0073e6;
+      }
+      nav a:hover {
+        text-decoration: underline;
+      }
+      /* Table styling */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th, td {
+        border: 1px solid #999;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background-color: #eee;
+      }
+      /* Form styling */
+      form label {
+        font-weight: bold;
+      }
+      form input[type="text"],
+      form input[type="email"],
+      form textarea {
+        width: 100%;
+        padding: 5px;
+        margin: 5px 0 10px 0;
+      }
+      form input[type="submit"] {
+        padding: 8px 16px;
+        background-color: #0073e6;
+        border: none;
+        color: #fff;
+        cursor: pointer;
+      }
+      form input[type="submit"]:hover {
+        background-color: #005bb5;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header section -->
+    <header>
+      <h1>Welcome to My Static Website</h1>
+      <p>This is a sample static website showcasing a variety of HTML features.</p>
+    </header>
+
+    <!-- Navigation menu -->
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="cats.html">About</a></li>
+        <li><a href="landscapes.html">Gallery</a></li>
+        <li><a href="404.html">Contact</a></li>
+      </ul>
+    </nav>
+
+    <!-- Main content area -->
+    <main>
+      <!-- Section: Introduction -->
+      <section>
+        <h2>Introduction</h2>
+        <p>This static page is designed to include various HTML elements for testing your server's functionality.</p>
+      </section>
+
+      <!-- Section: Text Formatting -->
+      <section>
+        <h2>Text Formatting</h2>
+        <p>This paragraph contains <strong>bold text</strong>, <em>italic text</em>, and <u>underlined text</u>. Additionally, here's some <small>small print</small>.</p>
+      </section>
+
+      <!-- Section: Lists -->
+      <section>
+        <h2>Lists</h2>
+        <h3>Ordered List</h3>
+        <ol>
+          <li>First item</li>
+          <li>Second item</li>
+          <li>Third item</li>
+        </ol>
+        <h3>Unordered List</h3>
+        <ul>
+          <li>Apple</li>
+          <li>Banana</li>
+          <li>Cherry</li>
+        </ul>
+      </section>
+
+      <!-- Section: Table -->
+      <section>
+        <h2>Table Example</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Age</th>
+              <th>Occupation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Alice</td>
+              <td>30</td>
+              <td>Engineer</td>
+            </tr>
+            <tr>
+              <td>Bob</td>
+              <td>25</td>
+              <td>Designer</td>
+            </tr>
+            <tr>
+              <td>Charlie</td>
+              <td>35</td>
+              <td>Manager</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Section: Blockquote -->
+      <section>
+        <h2>Blockquote</h2>
+        <blockquote cite="https://www.example.com">
+          <p>"The only limit to our realization of tomorrow is our doubts of today."</p>
+        </blockquote>
+        <p><cite>Franklin D. Roosevelt</cite></p>
+      </section>
+
+      <!-- Section: Image -->
+      <section>
+        <h2>Image Example</h2>
+        <p>Below is a sample image (ensure the file 'sample.jpg' is in the same directory):</p>
+        <img src="sample.jpg" alt="Sample Image" style="width:300px; height:auto;">
+      </section>
+
+      <!-- Section: Form -->
+      <section>
+        <h2>Contact Form</h2>
+        <form action="submit.html" method="post">
+          <label for="name">Name:</label><br>
+          <input type="text" id="name" name="name" value="John Doe"><br>
+          <label for="email">Email:</label><br>
+          <input type="email" id="email" name="email" value="john@example.com"><br>
+          <label for="message">Message:</label><br>
+          <textarea id="message" name="message" rows="5" cols="30">Enter your message here...</textarea><br>
+          <input type="submit" value="Submit">
+        </form>
+      </section>
+    </main>
+
+    <!-- Footer section -->
+    <footer>
+      <p>&copy; 2025 My Static Website. All rights reserved.</p>
+      <p>
+        <a href="privacy.html">Privacy Policy</a> | 
+        <a href="terms.html">Terms of Service</a>
+      </p>
+    </footer>
+  </body>
+</html>
