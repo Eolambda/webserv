@@ -303,13 +303,6 @@ void Response::prepareResponse()
 	if (!_body.empty() && _body.size() > _server->getMaxBodySize())
 		_status_code = "413";
 
-	if (_request->getMethod() == "POST" && _is_post_upload == true && _status_code == "201")
-	{
-		_status_code = "303";
-		if (_redirection.empty())
-			_redirection = "/";
-	}
-
 	if (isAnErrorResponse(_status_code))
 		defineResponseErrorPage();
 

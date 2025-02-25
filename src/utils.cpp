@@ -46,6 +46,21 @@ double get_time(void)
 	return (tv.tv_sec + tv.tv_usec / 1000000.0);
 }
 
+std::string get_time_in_hours(double timestamp)
+{
+    // Convert the timestamp (double) to a time_t (which is in seconds)
+    time_t raw_time = static_cast<time_t>(timestamp);
+    
+    // Use localtime to break down the timestamp into a tm structure
+    struct tm *time_info = localtime(&raw_time);
+    
+    // Format the time in the form of day, hours, minutes, and seconds
+    char buffer[80];
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", time_info);
+
+    return std::string(buffer);
+}
+
 bool check_extension(const std::string &str)
 {
 	if (str.find_last_of('.') == std::string::npos)

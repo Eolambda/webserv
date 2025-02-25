@@ -58,6 +58,7 @@ class Response
 		void handleGET(Client *client);
 		void handlePOST(Client *client);
 		void HandlePOST_multiform(std::string body, std::string content_type);
+		void HandlePOST_application(std::string body);
 		void handleDELETE();
 
 		void prepareResponse();

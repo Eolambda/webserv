@@ -1,5 +1,20 @@
   todo sujet correct et vrac :
 
+- run the eval sheet tests
+- tester cgi avec select monitoring
+  - simple programmes
+  - un simple write cgi 
+  - un simple read cgi
+- tester double servers
+- no leaks check
+  - voir que memoire saccumule pas
+
+
+----
+
+
+track of changes : 
+
 - rework for linux
   - changes : 
     - cgi file : 
@@ -16,9 +31,3 @@
       - stoi to atoi
     - Server
       - 28 : session erase (it++)
-- run the eval sheet tests
-- tester cgi avec select monitoring
-- tester cgi boucle infinie
-  - should expire
-- tester double servers
-- no leaks check

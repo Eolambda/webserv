@@ -12,18 +12,19 @@
 
 #include <webserv.hpp>
 
-int debug = 0;
+int debug = 1;
 int max_fd = 0;
 fd_set current_fds, write_fds, read_fds;
 volatile sig_atomic_t loop = 1;
 
-bool check_handling_requests(Client *client)
+bool check_request_timeouts(Client *client)
 {
-	//if request hang out for too long, we close the connection
-	if (client->getRequest() != NULL && client->getRequest()->getCreationTime() < (get_time() - REQUEST_TIMEOUT))
+	//if client or request hang out for too long, we close the connection
+	if (client->getRequest() != NULL && !client->getRequest()->isComplete()
+	&& client->getRequest()->getCreationTime() < (get_time() - REQUEST_TIMEOUT))
 	{				
 		client->close_connection = true;
-		std::cout << GREEN << "Client " << client->getFd() << " : request timeout" << RESET << std::endl;
+		std::cout << GREEN << "Client " << client->getFd() << " : connexion timeout" << RESET << std::endl;
 		return false;
 	}
 	//if cgi hang out for too long, we close the connection
@@ -101,7 +102,7 @@ void handle_clients(std::vector<Server> &servers)
 			client = &(*it2);
 			
 			
-			if (!check_handling_requests(client))
+			if (!check_request_timeouts(client))
 				return ;
 			//check if there is stuff to be read from clients
 			else if (FD_ISSET(client->getFd(), &read_fds))

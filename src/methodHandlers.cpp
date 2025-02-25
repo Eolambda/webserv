@@ -82,23 +82,43 @@ void Response::handlePOST(Client *client)
 	if (content_type.find("multipart/form-data") != std::string::npos)
 		HandlePOST_multiform(postBody, content_type);
 	else if (content_type.find("application/x-www-form-urlencoded") != std::string::npos)
-	{
-		std::map<std::string, std::string> params = parsePOSTBodyEncoded(postBody);
-		if (params.empty())
-		{
-			_status_code = "400";
-			return ;
-		}
-		else 
-		//data is parsed, we can use it
-			_status_code = "200";
-	}
+		HandlePOST_application(postBody);
 	//other cases, we don't handle other content types
 	else
 	{
 		_status_code = "400";
 		return ;
 	}
+
+	//if method is POST, we force a redirection
+	if (_status_code == "200" || _status_code == "201")
+	{
+		_status_code = "303";
+		if (_redirection.empty())
+			_redirection = "/";
+	}
+
+}
+
+void Response::HandlePOST_application(std::string body)
+{
+	std::map<std::string, std::string> params = parsePOSTBodyEncoded(body);
+
+		//debug
+		std::map<std::string, std::string>::iterator it;
+        for (it = params.begin(); it != params.end(); ++it) {
+            std::cout << "Key: " << it->first << " - Value: " << it->second << std::endl;
+        }
+
+
+	if (params.empty())
+	{
+		_status_code = "400";
+		return ;
+	}
+	else 
+	//data is parsed, we can use it
+		_status_code = "200";
 }
 
 //data is cut with boundary defined in the content-type header

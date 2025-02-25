@@ -37,6 +37,7 @@ std::string postBodyDecode(const std::string &src);
 std::map<std::string, std::string> parsePOSTBodyEncoded(const std::string &body);
 bool uploadFile(const std::string &filename, const std::string &content);
 double get_time(void);
+std::string get_time_in_hours(double timestamp);
 std::string generateSessionId(void);
 
 #endif

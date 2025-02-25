@@ -283,7 +283,7 @@ void Server::readRequest(Client &client)
 
 		if (client.getRequest()->isComplete())
 		{
-			
+			std::cout << GREEN << "Request received from client " << client_fd << RESET << std::endl;
 			if (debug)
 			{
 				std::cout << CYAN << std::endl << RESET;
@@ -539,7 +539,6 @@ void Server::sendResponse(Client &client)
 			client.close_connection = true;
 		else
 		{
-			//for now, disconnect client and remove it from server after each successful request
 			client.close_connection = false;
 			client.resetMessages();
 		}
