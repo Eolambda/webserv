@@ -14,6 +14,12 @@
 
 Location::Location()
 {
+	_route = "";
+	_allowed_methods = 0;
+	_directory_listing = false;
+	_path = "";
+	_redirect = "";
+	_index = "";
 }
 
 Location::~Location()
@@ -78,6 +84,11 @@ void Location::setIndex(const std::string &value)
 	_index = value;
 }
 
+void Location::setRoute(const std::string &value)
+{
+	_route = value;
+}
+
 uint8_t Location::getAllowedMethods(void) const
 {
 	return (_allowed_methods);
@@ -101,4 +112,9 @@ bool Location::getDirectoryListing(void) const
 std::string &Location::getIndex(void)
 {
 	return (_index);
+}
+
+std::string &Location::getRoute(void)
+{
+	return (_route);
 }

@@ -16,13 +16,18 @@ les envois du serveur
 - sur directory listing, affiche path depuis / , path doit etre base sur root du serveur
 - marche pas pour detecter directory proprement (pour delete pour linstant)
 - delete sur une location sans delete renvoie 500 au lieu de 405
-- if location not found, by default prevent the request (custom behavior)
-
-- directory listing lien dedans pointe pas vers bon endroit (verif si vrai)
-- ajouter bonne redirection pour chercher les files (voir sujet)
 - full path dans generation code erreur : affiche un / en trop
+- still reachable dans lenfant : throw une exception speciale quon catch dans le main, et return la value qui nous interesse
 - on accepte pas localhost de base il a limpression
+- ajouter bonne redirection pour chercher les files (voir sujet)
+
+
+- voir si le throw et shutdown servers marche bien (peut tout faire planter)
+  - double free error
+  - corriger ensuite le debug msg dans le execve 
+- faire qq tests avec redirection route
+  - voir surtout si on utilise full path partout, sinon modifier retroactivement les autres params request / response
+- if location not found, set default behavior (et aussi prevent les delete sauvages)
+- directory listing lien dedans pointe pas vers bon endroit (verif si vrai)
 - fd clients pas close a la fin ?
-- still reachable dans lenfant : 
-  - sa technique : throw une exception speciale quon catch dans le main, et return la value qui nous interesse
 - ubuntu tester [lien du site]

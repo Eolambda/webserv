@@ -7,17 +7,17 @@ SERVER="localhost"
 PORT=8080
 
 # --- BASIC GET REQUEST ---
-REQUEST="GET /doc/ HTTP/1.1\r
-Host: $SERVER\r
-Connection: close\r
-Cookie: username=admin;\r
-\r\n"
-
-# --- CGI GET REQUEST ---
-# REQUEST="GET /test.py HTTP/1.1\r
+# REQUEST="GET /uploads/ HTTP/1.1\r
 # Host: $SERVER\r
 # Connection: close\r
+# Cookie: username=admin;\r
 # \r\n"
+
+# --- CGI GET REQUEST ---
+REQUEST="GET /test_route/index.html HTTP/1.1\r
+Host: $SERVER\r
+Connection: close\r
+\r\n"
 
 # --- BASIC DELETE REQUEST ---
 # REQUEST="DELETE /delete_testing/abc HTTP/1.1\r

@@ -26,12 +26,14 @@ public:
 	void setRedirect(const std::string &value);
 	void setDirectoryListing(const bool value);
 	void setIndex(const std::string &value);
+	void setRoute(const std::string &value);
 
 	uint8_t getAllowedMethods(void) const;
 	std::string &getPath(void);
 	std::string &getRedirect(void);
 	bool getDirectoryListing(void) const;
 	std::string &getIndex(void);
+	std::string &getRoute(void);
 
 private:
 	std::string _path;
@@ -39,5 +41,6 @@ private:
 	bool _directory_listing;
 	std::string _redirect;
 	std::string _index;
+	std::string _route;
 };
 #endif

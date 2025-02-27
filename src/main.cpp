@@ -196,9 +196,12 @@ int main(int argc, char **argv)
 		std::cerr << RED << "Error: invalid file extension" << RESET << std::endl;
 		return (EXIT_FAILURE);
 	}
+
+	
+	std::vector<Server> servers;
 	try
 	{
-		std::vector<Server> servers = Server::parseConfigFile(filename);
+		servers = Server::parseConfigFile(filename);
 		if (!checkConfigFile(servers))
 			return (EXIT_FAILURE);
 
@@ -223,6 +226,7 @@ int main(int argc, char **argv)
 	catch (std::exception &e)
 	{
 		std::cerr << RED << "Exception caught: " << e.what() << RESET << std::endl;
+		shutdown_server(servers);
 		return (EXIT_FAILURE);
 	}
 	return (EXIT_SUCCESS);

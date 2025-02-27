@@ -331,9 +331,9 @@ void Response::defineResponseErrorPage()
 	if (error_page.empty() == false)
 	{
 		//reconstitue full path
-		if (!_full_path.empty() && _full_path[_full_path.length() - 1] == '/' && error_page[0] == '/')
+		if (!_server->getRoot().empty() && _server->getRoot()[_server->getRoot().length() - 1] == '/' && error_page[0] == '/')
 			error_page.erase(error_page.begin());
-		else if (!_full_path.empty() && _full_path[_full_path.length() - 1] != '/' && error_page[0] != '/')
+		else if (!_server->getRoot().empty() && _server->getRoot()[_server->getRoot().length() - 1] != '/' && error_page[0] != '/')
 			error_page = "/" + error_page;
 		_full_path = _server->getRoot() + error_page;
 

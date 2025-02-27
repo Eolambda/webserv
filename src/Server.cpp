@@ -364,6 +364,15 @@ void Server::processRequest(Client &client)
 				return;
 			}
 
+			//if the request is rooted to another route, handle it
+			if ((*it).getRoute().empty() == false)
+			{
+				//remplace location_path dans full path par route
+				std::string temp_full_path_one = full_path.substr(0, full_path.find(location_path));
+				std::string temp_full_path_two = full_path.substr(full_path.find(location_path) + location_path.size());
+				full_path = temp_full_path_one + (*it).getRoute() + temp_full_path_two;
+			}
+
 			//check if the request is a directory
 			if (isDirectory(full_path))
 			{
@@ -384,13 +393,6 @@ void Server::processRequest(Client &client)
 			}
 			break;
 		}
-	}
-
-	//if no location found, we send an error
-	if (i == 0)
-	{
-		client.getResponse()->setStatusCode("500");
-		return;
 	}
 
 	//set full path

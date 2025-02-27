@@ -136,14 +136,18 @@ void execute_cgi(std::vector<std::string> cmd, std::vector<std::string> env, Cli
 		envp.push_back(NULL);
 
 		//execve
-		if (execve(args[0], args.data(), envp.data()) < 0)
+		
+			//debug
+			std::string test = "ab";
+
+		if (execve(test.c_str(), args.data(), envp.data()) < 0)
 		{
 			delete[] args.data();
 			delete[] envp.data();
 			close (client->getCgiPipes()[1]);
 			if (client->getRequest()->getMethod() == "POST")
 				close(client->getCgiPipes_POST()[0]);
-			exit(EXIT_FAILURE);
+			throw std::runtime_error("Error: CGI error");
 		}
 		//worst case
 		delete[] args.data();
@@ -151,7 +155,7 @@ void execute_cgi(std::vector<std::string> cmd, std::vector<std::string> env, Cli
 		close (client->getCgiPipes()[1]);
 		if (client->getRequest()->getMethod() == "POST")
 			close(client->getCgiPipes_POST()[0]);
-		exit(EXIT_FAILURE);
+		throw std::runtime_error("Error: CGI error");
 	}
 	else
 	{

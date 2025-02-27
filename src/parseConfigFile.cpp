@@ -78,6 +78,8 @@ void parseLocationBlock(const std::string &key, const std::string &value, Server
 		loc.setDirectoryListing(value == "on");
 	else if (key == "index")
 		loc.setIndex(value);
+	else if (key == "route")
+		loc.setRoute(value);
 	else
 		throw std::runtime_error("Error: invalid key in location block");
 }
@@ -145,7 +147,7 @@ bool checkConfigFile(std::vector<Server> &servers)
 	//go through each server and check if the config is valid
 	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
 	{
-		if (it->getHostname().empty() || !checkIPAddrFormat(it->getHostname()))
+		if (it->getHostname().empty())
 		{
 			std::cerr << RED << "Error: missing hostaddr in server block or improper format" << RESET << std::endl;
 			return false;
