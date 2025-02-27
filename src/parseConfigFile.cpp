@@ -87,13 +87,20 @@ void parseServerBlock(const std::string &key, const std::string &value, Server &
 	if (key == "hostaddr")
 		current_server.setHostname(value);
 	else if (key == "port")
+	{
+		if (current_server.getPort() == std::atoi(value.c_str()))
+			throw std::runtime_error("Error: cannot specify two times the same port on the same server");
 		current_server.setPort(std::atoi(value.c_str()));
+	}
 	else if (key == "server_name")
 		current_server.setServerName(value);
 	else if (key == "max_body_size")
 		current_server.setMaxBodySize(std::atoll(value.c_str()));
 	else if (key == "root_directory")
+	{
 		current_server.setRoot(value);
+		current_server.relative_root = value;
+	}
 	else if (key == "entry_file")
 		current_server.setDefaultFile(value);
 	else if (key == "cgi-bin")

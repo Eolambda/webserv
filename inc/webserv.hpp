@@ -29,6 +29,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/select.h>
+#include <sys/wait.h>
 #include <netinet/in.h>
 #include <unistd.h>
 #include <signal.h>
@@ -72,7 +73,7 @@
 #define BUFFER_SIZE 4096
 #define MAX_CONNECTIONS 1000
 #define REQUEST_TIMEOUT 10
-#define CGI_TIMEOUT 8
+#define CGI_TIMEOUT 3
 #define COOKIES_EXPIRY_TIME 2419200
 
 #define GET_BIT 0x01

@@ -4,7 +4,7 @@ void Response::handleGET(Client *client)
 {
 	if (_is_directory == true)
 	{
-		_body = generateDirectorylisting(_full_path);
+		_body = generateDirectorylisting(_full_path, client->getServer()->relative_root);
 		_status_code = "200";
 	}
 	else if (_is_cgi == true)
@@ -33,8 +33,13 @@ void Response::handleGET(Client *client)
 
 void Response::handleDELETE()
 {
+	if (_is_directory == true)
+	{
+		_status_code = "403";
+		return;
+	}
 	if (remove(_full_path.c_str()) != 0)
-		_status_code = "500";
+		_status_code = "405";
 	else
 		_status_code = "204";
 }

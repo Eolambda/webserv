@@ -28,6 +28,8 @@ struct SessionData
 class Server
 {
 public:
+	std::string relative_root;
+
 	Server();
 	Server(const Server &server);
 	~Server();

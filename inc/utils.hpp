@@ -25,7 +25,7 @@ bool isDirectory(const std::string &path);
 std::string decodeURI(const std::string &uri);
 std::string extractPathFromURI(const std::string uri);
 std::string extractAttributesFromURI(const std::string uri);
-std::string generateDirectorylisting(const std::string full_path);
+std::string generateDirectorylisting(const std::string full_path, const std::string root_path);
 bool isAnErrorResponse(const std::string error_number);
 std::string &rtrim(std::string &s);
 std::string &ltrim(std::string &s);
@@ -39,5 +39,6 @@ bool uploadFile(const std::string &filename, const std::string &content);
 double get_time(void);
 std::string get_time_in_hours(double timestamp);
 std::string generateSessionId(void);
+bool checkExecutable(const std::string& path);
 
 #endif

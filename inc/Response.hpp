@@ -8,8 +8,9 @@
 class Response
 {
 	public:
-		bool is_being_written;
-		bool is_complete;
+		bool	is_being_written;
+		bool	is_complete;
+		pid_t 	cgi_pid;
 
 		Response();
 		Response(const Response &response);

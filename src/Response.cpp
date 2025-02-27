@@ -13,6 +13,7 @@ Response::Response()
 	_is_cgi = false;
 	_is_post_upload = false;
 	_sessionid = "";
+	cgi_pid = 0;
 }
 
 Response::Response(const Response &response)
@@ -39,6 +40,7 @@ Response::Response(const Response &response)
 	_is_cgi = response._is_cgi;
 	_is_post_upload = response._is_post_upload;
 	_sessionid = response._sessionid;
+	cgi_pid = response.cgi_pid;
 }
 
 Response::~Response()
@@ -69,6 +71,7 @@ Response &Response::operator=(const Response &copy)
 	_is_cgi = copy._is_cgi;
 	_is_post_upload = copy._is_post_upload;
 	_sessionid = copy._sessionid;
+	cgi_pid = copy.cgi_pid;
 	return *this;
 }
 
@@ -300,8 +303,6 @@ void Response::prepareResponse()
 
 	if (_status_code.empty())
 		_status_code = "500";
-	if (!isAnErrorResponse(_status_code) && !_body.empty() && _body.size() > _server->getMaxBodySize())
-		_status_code = "413";
 	if (isAnErrorResponse(_status_code))
 		defineResponseErrorPage();
 	defineStatusMessage(_status_code);
@@ -509,6 +510,8 @@ void Response::defineStatusMessage(const std::string status_number)
 		_status_message = "Not Found";
 	else if (status_code == 405)
 		_status_message = "Method Not Allowed";
+	else if (status_code == 408)
+		_status_message = "Request timeout";
 	else if (status_code == 409)
 		_status_message = "Conflict";
 	else if (status_code == 413)

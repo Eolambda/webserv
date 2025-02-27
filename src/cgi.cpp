@@ -54,6 +54,20 @@ void handle_cgi(Client *client)
 
 	program_path += server->getCgiExtensions()[extension];
 
+	//check that program path exists
+	if (checkPathExists(program_path) == false)
+	{
+		client->getResponse()->setStatusCode("404");
+		client->getResponse()->setIsCgi(false);
+		return;
+	}
+	else if (checkExecutable(program_path) == false)
+	{
+		client->getResponse()->setStatusCode("403");
+		client->getResponse()->setIsCgi(false);
+		return;
+	}
+
 	std::vector<std::string> command(2);
 	command[0] = program_path;
 	command[1] = file_path;
@@ -96,6 +110,7 @@ void execute_cgi(std::vector<std::string> cmd, std::vector<std::string> env, Cli
 		}
 		return;
 	}
+	client->getResponse()->cgi_pid = pid;
 	if (pid == 0)
 	{
 		close(client->getCgiPipes()[0]);
@@ -130,7 +145,6 @@ void execute_cgi(std::vector<std::string> cmd, std::vector<std::string> env, Cli
 				close(client->getCgiPipes_POST()[0]);
 			exit(EXIT_FAILURE);
 		}
-
 		//worst case
 		delete[] args.data();
 		delete[] envp.data();
@@ -199,7 +213,7 @@ void Server::sendCGI(Client &client)
 
 	if (time - client.getCGITimer() > CGI_TIMEOUT)
 	{
-		client.getResponse()->setStatusCode("500");
+		client.getResponse()->setStatusCode("504");
 		close(client.getCgiPipes_POST()[1]);
 		close(client.getCgiPipes()[0]);
 		client.getCgiPipes_POST()[0] = -1;
@@ -249,18 +263,39 @@ void Server::receiveCGI(Client &client)
 {
 	int ret;
 	char buffer[BUFFER_SIZE + 1];
-	double time = get_time();
+	int status;
+	pid_t retpid;
 
-	if (time - client.getCGITimer() > CGI_TIMEOUT)
-	{
-		client.getResponse()->setStatusCode("500");
-		close(client.getCgiPipes()[0]);
-		client.getCgiPipes()[0] = -1;
-		client.getCgiPipes()[1] = -1;
-		client.getResponse()->setCgiBuffer("");
+	//check if process terminated properly
+	retpid = waitpid(client.getResponse()->cgi_pid, &status, WNOHANG);
+	if (retpid == 0)
 		return;
+	else
+	{
+        if (WIFEXITED(status))
+        {
+            int exit_code = WEXITSTATUS(status);
+            if (exit_code != 0)
+			{
+                client.getResponse()->setStatusCode("502");
+				close (client.getCgiPipes()[0]);
+				client.getCgiPipes()[0] = -1;
+				client.getCgiPipes()[1] = -1;
+				return;
+			}
+        }
+        else if (WIFSIGNALED(status))
+        {
+            client.getResponse()->setStatusCode("500");
+			close (client.getCgiPipes()[0]);
+			client.getCgiPipes()[0] = -1;
+			client.getCgiPipes()[1] = -1;
+			return;
+        }
 	}
 
+
+	//read data back from cgi
 	ret = read(client.getCgiPipes()[0], buffer, BUFFER_SIZE);
 	if (ret < 0)
 	{

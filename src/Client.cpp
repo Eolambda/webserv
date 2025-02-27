@@ -78,6 +78,8 @@ void Client::closeSockets()
 {
 	if (_fd > 0)
 		close(_fd);
+	if(_cgi_pipes[0] > 0 || _cgi_pipes_POST[1] > 0 || _response->cgi_pid > 0)
+		kill(_response->cgi_pid, SIGKILL);
 	if (_cgi_pipes[0] > 0)
 		close(_cgi_pipes[0]);
 	if (_cgi_pipes[1] > 0)

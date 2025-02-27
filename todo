@@ -1,3 +1,28 @@
-  todo sujet correct et vrac :
+Erreurs david : 
 
-- run the eval sheet tests
+- peut pas lire deux fois le meme port
+- timout cgi : doit envoyer 504
+- si on vire bin du cgi, truc chelou (checker existe)
+- si erreur script cgi, renvoyer 502 (voir waitpid)
+- voir pour kill programme si timeout et boucle infinie
+- script crash (killed) -> 500 
+- check droits sur fichier cgi (sinon 403)
+- si ctrl c, essayer de kill cgi si encore la
+- arg[0] = pointe vers python 3, arg[1] pointe vers URI
+- on peut supprimer cgi-bin et dossiers : verifier que delete peut pas toucher aux directories
+- 10 sur body size affiche plus rien : doit etre seulement check pour les arrrivees client et pas pour 
+les envois du serveur
+- ctrl-c pdt cgi : zombifie serveur
+- sur directory listing, affiche path depuis / , path doit etre base sur root du serveur
+- marche pas pour detecter directory proprement (pour delete pour linstant)
+- delete sur une location sans delete renvoie 500 au lieu de 405
+- if location not found, by default prevent the request (custom behavior)
+
+- directory listing lien dedans pointe pas vers bon endroit (verif si vrai)
+- ajouter bonne redirection pour chercher les files (voir sujet)
+- full path dans generation code erreur : affiche un / en trop
+- on accepte pas localhost de base il a limpression
+- fd clients pas close a la fin ?
+- still reachable dans lenfant : 
+  - sa technique : throw une exception speciale quon catch dans le main, et return la value qui nous interesse
+- ubuntu tester [lien du site]

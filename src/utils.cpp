@@ -39,6 +39,25 @@ bool is_digits(const std::string& str)
     return true; // Return true if all characters are digits
 }
 
+bool checkExecutable(const std::string& path)
+{
+    struct stat info;
+    
+    // Check if the file exists
+    if (stat(path.c_str(), &info) != 0)
+        return false; // File does not exist
+
+    // Check if it's a regular file or a script
+    if (!S_ISREG(info.st_mode))
+        return false; // Not a regular file
+
+    // Check if the file is executable
+    if (access(path.c_str(), X_OK) != 0)
+        return false; // No execution rights
+
+    return true; // File exists and is executable
+}
+
 double get_time(void)
 {
 	struct timeval tv;
@@ -147,10 +166,14 @@ std::string extractAttributesFromURI(const std::string uri)
 }
 
 //Use full path of directory to generate directory listing in html
-std::string generateDirectorylisting(const std::string full_path)
+std::string generateDirectorylisting(const std::string full_path, const std::string root_path)
 {
 	std::stringstream directory_listing;
-	std::string relative_path = full_path.substr(full_path.find_last_of('/') + 1);
+	std::string relative_path = "/";
+	size_t found = full_path.rfind(root_path);
+
+	if (found != std::string::npos)
+		relative_path = full_path.substr(found + root_path.length());
 
 	directory_listing << "<html><head>";
 	directory_listing << "<title>Directory listing</title>";
@@ -160,7 +183,7 @@ std::string generateDirectorylisting(const std::string full_path)
 	directory_listing << "table {width: 100%; border-collapse: collapse;}";
 	directory_listing << "</style>";
 	directory_listing << "</head><body>";
-	directory_listing << "<h1>Directory listing : </h1> <h3>" << full_path << "</h3>";
+	directory_listing << "<h1>Directory listing : </h1> <h3>" << relative_path << "</h3>";
 	directory_listing << "<table>";
 
 	DIR *dir;

@@ -29,10 +29,9 @@ bool check_request_timeouts(Client *client)
 	}
 	//if cgi hang out for too long, we close the connection
 	else if (client->getRequest() != NULL && client->getRequest()->isComplete()
-	&& client->getResponse()->getIsCgi() == true && client->getCGITimer() < (get_time() - CGI_TIMEOUT)
-	&& client->getResponse()->getStatusCode() != "408")
+	&& client->getResponse()->getIsCgi() == true && client->getCGITimer() < (get_time() - CGI_TIMEOUT))
 	{
-		client->getResponse()->setStatusCode("408");
+		client->getResponse()->setStatusCode("504");
 		close(client->getCgiPipes_POST()[1]);
 		close(client->getCgiPipes()[0]);
 		client->getCgiPipes_POST()[0] = -1;
@@ -41,6 +40,8 @@ bool check_request_timeouts(Client *client)
 		client->getCgiPipes()[1] = -1;
 		client->getResponse()->setCgiBuffer("");
 		std::cout << GREEN << "Client " << client->getFd() << " : CGI timeout" << RESET << std::endl;
+		kill(client->getResponse()->cgi_pid, SIGKILL);
+		client->getResponse()->setIsCgi(false);
 		return false;
 	}
 	return true;

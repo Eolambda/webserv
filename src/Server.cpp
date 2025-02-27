@@ -322,8 +322,7 @@ void Server::processRequest(Client &client)
 	//check for location properties
 	std::string location_path;
 	size_t pos;
-
-		
+	int i = 0;
 	for (std::vector<Location>::iterator it = this->getLocations().begin(); it != this->getLocations().end(); ++it)
 	{
 		location_path = extractPathFromURI(client.getRequest()->getUri());
@@ -345,7 +344,7 @@ void Server::processRequest(Client &client)
 		//a location block exists, we handle it
 		if (location_path == (*it).getPath())
 		{
-			
+			i++;
 			//this is a redirection, we handle it
 			if ((*it).getRedirect().empty() == false)
 			{
@@ -385,6 +384,13 @@ void Server::processRequest(Client &client)
 			}
 			break;
 		}
+	}
+
+	//if no location found, we send an error
+	if (i == 0)
+	{
+		client.getResponse()->setStatusCode("500");
+		return;
 	}
 
 	//set full path
