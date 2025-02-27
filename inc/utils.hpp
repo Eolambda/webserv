@@ -40,6 +40,6 @@ double get_time(void);
 std::string get_time_in_hours(double timestamp);
 std::string generateSessionId(void);
 bool checkExecutable(const std::string& path);
-std::string trimLastBacklash(const std::string string);
+std::string addLastBacklash(std::string str);
 
 #endif

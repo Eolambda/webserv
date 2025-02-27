@@ -22,7 +22,7 @@ les envois du serveur
 - ajouter bonne redirection pour chercher les files (voir sujet)
 
 
-- interdire le / a la fin des location / routes / default repositories
+
 - voir si le throw et shutdown servers marche bien (peut tout faire planter)
   - double free error
   - corriger ensuite le debug msg dans le execve 
@@ -31,4 +31,5 @@ les envois du serveur
 - if location not found, set default behavior (et aussi prevent les delete sauvages)
 - directory listing lien dedans pointe pas vers bon endroit (verif si vrai)
 - fd clients pas close a la fin ?
+- uniformiser le / a la fin des location / routes / default repositories (si folders, forcer ajouter /)
 - ubuntu tester [lien du site]

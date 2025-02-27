@@ -165,15 +165,16 @@ std::string extractAttributesFromURI(const std::string uri)
 	return decodeURI(attributes);
 }
 
-//removes the last / of a directory path 
-std::string trimLastBacklash(const std::string str)
+//add a / at the end of the directory path
+std::string addLastBacklash(std::string str)
 {
     // Check if the string is empty or already doesn't end with a slash
-    if (str.empty() || (!str.empty() && str[str.size() - 1] != '/'))
+    if (str.empty() || (!str.empty() && str[str.size() - 1] == '/'))
         return str;  // Return as is
 
     // Remove the last slash by creating a substring without the last character
-    return str.substr(0, str.size() - 1);
+    str.push_back('/');
+	return (str);
 }
 
 //Use full path of directory to generate directory listing in html
