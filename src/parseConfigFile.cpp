@@ -77,7 +77,11 @@ void parseLocationBlock(const std::string &key, const std::string &value, Server
 	else if (key == "allow_directory_listing")
 		loc.setDirectoryListing(value == "on");
 	else if (key == "index")
+	{
+		if (!value.empty() && value[value.size() - 1] == '/')
+			throw std::runtime_error("Error: index file cannot be a directory");
 		loc.setIndex(value);
+	}
 	else if (key == "route")
 		loc.setRoute(value);
 	else
@@ -104,7 +108,11 @@ void parseServerBlock(const std::string &key, const std::string &value, Server &
 		current_server.relative_root = value;
 	}
 	else if (key == "entry_file")
+	{
+		if (!value.empty() && value[value.size() - 1] == '/')
+			throw std::runtime_error("Error: entry file cannot be a directory");
 		current_server.setDefaultFile(value);
+	}
 	else if (key == "cgi-bin")
 		current_server.setCgiBin(value);
 	else if (key == "uploads")
